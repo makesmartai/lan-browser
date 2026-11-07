@@ -1,0 +1,67 @@
+LANBrowser/PortScan.swift
+  s_913fe60962038f::t_0bc8a5cf936328 8-10
+  s_913fe60962038f::t_3c91778d5ac880 37
+  s_913fe60962038f::t_b5050458d3f6c6 38
+  s_913fe60962038f::t_4b4c6f5d9a76ab 39-44
+Tests/CoreChecks.swift
+  s_913fe60962038f::t_73a95947aa8358 322
+SUPPORT.md
+  s_913fe60962038f::t_94bdd76d333337 16-17
+LANBrowser/SettingsView.swift
+  s_913fe60962038f::t_1b31a298365c6e 54
+LANBrowser/privacy_policy.md
+  s_913fe60962038f::t_20140fabdcb9ff 2
+  s_913fe60962038f::t_a0fa28a49d87ee 26
+README.md
+  s_913fe60962038f::t_f0f7c118bb9d13 69
+  s_913fe60962038f::t_a6bf6cd3e93666 89
+  s_913fe60962038f::t_df31c92f76900a 116
+  s_913fe60962038f::t_9ddc7787b144b4 142
+  s_913fe60962038f::t_fb4cde3562fa16 51
+  s_913fe60962038f::t_befc0275c7c6a1 65
+docs/TESTING.md
+  s_913fe60962038f::t_6b66d29b7d82be 92-93
+  s_913fe60962038f::t_79416e08ce556c 48
+  s_913fe60962038f::t_7244a251bf215b 45
+  s_913fe60962038f::t_136673f5c63b1a 49
+AGENTS.md
+  s_913fe60962038f::t_f09dd4806524d8 103
+LANBrowser/LocalNetwork.swift
+  s_913fe60962038f::t_3430ad4d41a494 129-134,142-143,145-150,155
+  s_913fe60962038f::t_29a312f7e12d26 144,151-154
+  s_913fe60962038f::t_a2b40eb352706f 156
+LANBrowser/NetworkViews.swift
+  s_913fe60962038f::t_02be2102cfed96 198
+  s_913fe60962038f::t_2ffd645d85d797 203
+  s_913fe60962038f::t_4ae008c0687369 175
+  s_913fe60962038f::t_763f1c10eada83 139
+  s_913fe60962038f::t_c09cfb5b04e3a8 140-141
+  s_913fe60962038f::t_bafec0fbc0fc7d 192
+  s_913fe60962038f::t_ab17c90496d0f8 199-202,204-217
+  s_913fe60962038f::t_b68a87a7be6372 248
+  s_913fe60962038f::t_d10369dc596aea 61
+  s_913fe60962038f::t_4565c85ff3f43f 136
+  s_913fe60962038f::t_58fcd9f7027b66 127-128,131-132
+  s_913fe60962038f::t_145b69315df54b 63
+LANBrowser/BrowserScreen.swift
+  s_913fe60962038f::t_9ad04bfa28751d 53
+  s_913fe60962038f::t_51e8e6a60082d8 327-328
+  s_913fe60962038f::t_2e3ec1f3741486 332-334,336
+  s_913fe60962038f::t_65dcea11074954 335
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "920d1420e4a9e89f6c5ca723128a6457bbb2dab2",
+  "prompts": {},
+  "sessions": {
+    "s_913fe60962038f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f60a1e94-16b0-42b5-810e-7c8915472ecc",
+        "model": "grok-4.7"
+      },
+      "human_author": "jesse goodier <31039225+jessegoodier@users.noreply.github.com>"
+    }
+  }
+}
