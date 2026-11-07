@@ -212,8 +212,7 @@ final class BrowserTab: NSObject, ObservableObject, Identifiable {
         let nsError = error as NSError
         guard nsError.code != NSURLErrorCancelled,
               !(nsError.domain == "WebKitErrorDomain" && nsError.code == 102) else { return }
-        let failingURL = nsError.userInfo[NSURLErrorFailingURLStringErrorKey] as? String
-            ?? (nsError.userInfo[NSURLErrorFailingURLErrorKey] as? URL)?.absoluteString ?? requestedURL?.absoluteString
+        let failingURL = (nsError.userInfo[NSURLErrorFailingURLErrorKey] as? URL)?.absoluteString ?? requestedURL?.absoluteString
         let underlying = (nsError.userInfo[NSUnderlyingErrorKey] as? NSError).map { (domain: $0.domain, code: $0.code) }
         pageError = "Couldn’t load this page. On a home network, check the address and port. On public Wi-Fi, open HTTP Forever so the captive portal can show its sign-in page.\n\n\(error.localizedDescription)\n\n"
             + ErrorText.details(domain: nsError.domain, code: nsError.code, url: failingURL, underlying: underlying)

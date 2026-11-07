@@ -620,15 +620,8 @@ struct BrowserActions {
     var perform: @MainActor (BrowserCommand) -> Void
 }
 
-private struct BrowserActionsKey: FocusedValueKey {
-    typealias Value = BrowserActions
-}
-
 extension FocusedValues {
-    var browserActions: BrowserActions? {
-        get { self[BrowserActionsKey.self] }
-        set { self[BrowserActionsKey.self] = newValue }
-    }
+    @Entry var browserActions: BrowserActions?
 }
 
 private struct DeviceRename {
