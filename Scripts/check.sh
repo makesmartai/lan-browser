@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "${0:A:h:h}"
 mkdir -p build/checks build/module-cache
-xcrun swiftc -swift-version 5 -strict-concurrency=complete \
+xcrun swiftc -swift-version 6 -target "$(uname -m)-apple-macos26.0" \
   -module-cache-path build/module-cache \
   LANBrowser/Address.swift LANBrowser/Bookmarks.swift LANBrowser/ServiceCatalog.swift LANBrowser/DiagnosticsLogic.swift \
   LANBrowser/DeviceNames.swift LANBrowser/TabStore.swift LANBrowser/DiscoveryCache.swift \

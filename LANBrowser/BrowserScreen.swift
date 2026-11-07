@@ -620,6 +620,7 @@ struct BrowserActions {
     var perform: @MainActor (BrowserCommand) -> Void
 }
 
+// A hand-written key rather than @Entry: CodeQL's traced Swift build can't load macro plugins.
 private struct BrowserActionsKey: FocusedValueKey {
     typealias Value = BrowserActions
 }

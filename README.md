@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/jessegoodier/lan-browser/actions/workflows/ci.yml/badge.svg)](https://github.com/jessegoodier/lan-browser/actions/workflows/ci.yml) [![CodeQL](https://github.com/jessegoodier/lan-browser/actions/workflows/codeql.yml/badge.svg)](https://github.com/jessegoodier/lan-browser/actions/workflows/codeql.yml) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/jessegoodier/lan-browser/badge)](https://scorecard.dev/viewer/?uri=github.com/jessegoodier/lan-browser) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A small iPhone and iPad browser with tabs for home services and captive-portal Wi-Fi. Built with SwiftUI and WebKit, it requires iOS or iPadOS 17.0 or later and has no dependencies. The iPad app also runs on Apple silicon Macs.
+A small iPhone and iPad browser with tabs for home services and captive-portal Wi-Fi. Built with SwiftUI and WebKit, it requires iOS or iPadOS 26.0 or later and has no dependencies. The iPad app also runs on Apple silicon Macs with macOS 26 or later.
 
 LAN Browser is free and will never have paid features, subscriptions, or ads. It’s built for the community of home-networking enthusiasts who run their own servers, routers and smart-home devices.
 
@@ -76,7 +76,7 @@ Discovery and the port scan run only when you ask, plus one automatic Bonjour sc
 - **Any main-page response other than 200** makes the response the first line of the page: a strip above the page content (never covering it) with the status (for example `HTTP 404 Not Found`) and the exact method and URL, so a blank error page is never silent. If the error response can’t be displayed as a page (for example a 404 sent as `application/octet-stream`), it is never saved as a download; the error screen is headed with the status and lists the request, Content-Type, Content-Length and Server, with **Response Details**. **Details** lists the status and every response header as received, with **Copy Response Details**; **Diagnose** opens the connection checks. Page Info also has a **Response** section. The status code is exactly what the server sent; WebKit doesn’t pass on the server’s own reason phrase (HTTP/2 has none), so the phrase is the standard one for that code. iOS may normalize header names and doesn’t keep their order, so headers are sorted by name.
 - **A page that fails to load** shows the system’s message plus the exact error domain and code, any underlying error, and the failing URL (for example `NSURLErrorDomain -1004`, `kCFErrorDomainCFNetwork -1004`, `http://127.0.0.1:8899/`). The text can be selected and copied.
 - **Ports browsers refuse to load** (the Fetch standard’s blocked ports, such as 22, 25, 548 and 554) are explained instead of leaving a blank page; WebKit drops these without reporting an error.
-- **Untrusted certificates on local addresses** open anyway. When an HTTPS page on a local-network address (private IPv4 such as 10.x, 172.16–31.x or 192.168.x, link-local, `.local` names, single-word host names, or localhost) has a certificate iOS can’t verify (self-signed, expired, or wrong name), the first line of the page is a strip with a red “!” reading “Certificate not trusted” and the host. Tap it to see the system’s exact trust error and error code, and for each certificate in the chain its subject, common name, valid from and until (iOS 18 and later), key type and size, serial number and SHA-256 fingerprint. **Copy Certificate Details** copies them. Page Info’s Connection section says “Encrypted (HTTPS), but the certificate isn’t trusted” and has **Show Certificate**. **Internet sites with invalid certificates are still rejected** with the system’s normal error.
+- **Untrusted certificates on local addresses** open anyway. When an HTTPS page on a local-network address (private IPv4 such as 10.x, 172.16–31.x or 192.168.x, link-local, `.local` names, single-word host names, or localhost) has a certificate iOS can’t verify (self-signed, expired, or wrong name), the first line of the page is a strip with a red “!” reading “Certificate not trusted” and the host. Tap it to see the system’s exact trust error and error code, and for each certificate in the chain its subject, common name, valid from and until, key type and size, serial number and SHA-256 fingerprint. **Copy Certificate Details** copies them. Page Info’s Connection section says “Encrypted (HTTPS), but the certificate isn’t trusted” and has **Show Certificate**. **Internet sites with invalid certificates are still rejected** with the system’s normal error.
 
 ## Connection diagnostics
 
@@ -90,7 +90,7 @@ Open **Settings** (the gear button on the bookmark screen). It has four groups: 
 
 ## Building from source
 
-Requirements: Xcode with the iOS 17 SDK or later. There are no dependencies to install.
+Requirements: Xcode with the iOS 26 SDK or later. There are no dependencies to install.
 
 1. Open `LANBrowser.xcodeproj` in Xcode and select the **LANBrowser** scheme.
 2. Select the **LANBrowser** target, open **Signing & Capabilities**, and choose your own **Team**.

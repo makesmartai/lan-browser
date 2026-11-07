@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import Network
 import Security
 
@@ -114,7 +115,7 @@ enum NetworkProbe {
             while let info = cursor {
                 var buffer = [CChar](repeating: 0, count: Int(NI_MAXHOST))
                 if getnameinfo(info.pointee.ai_addr, info.pointee.ai_addrlen, &buffer, socklen_t(buffer.count), nil, 0, NI_NUMERICHOST) == 0 {
-                    let address = String(cString: buffer)
+                    let address = String(nulTerminated: buffer)
                     if !addresses.contains(address) { addresses.append(address) }
                 }
                 cursor = info.pointee.ai_next
@@ -188,7 +189,7 @@ enum NetworkProbe {
             defer { freeaddrinfo(list) }
             var buffer = [CChar](repeating: 0, count: Int(NI_MAXHOST))
             guard getnameinfo(info.pointee.ai_addr, info.pointee.ai_addrlen, &buffer, socklen_t(buffer.count), nil, 0, NI_NAMEREQD) == 0 else { return nil }
-            let name = String(cString: buffer)
+            let name = String(nulTerminated: buffer)
             return name.isEmpty || name == address ? nil : name
         }.value
     }
@@ -257,7 +258,7 @@ enum NetworkProbe {
             if String(cString: entry.pointee.ifa_name) == interface, let address = entry.pointee.ifa_addr, address.pointee.sa_family == UInt8(AF_INET) {
                 var buffer = [CChar](repeating: 0, count: Int(NI_MAXHOST))
                 if getnameinfo(address, socklen_t(address.pointee.sa_len), &buffer, socklen_t(buffer.count), nil, 0, NI_NUMERICHOST) == 0 {
-                    return String(cString: buffer)
+                    return String(nulTerminated: buffer)
                 }
             }
             cursor = entry.pointee.ifa_next
@@ -308,38 +309,44 @@ enum NetworkProbe {
 }
 
 /// Resumes a continuation exactly once, whichever callback or timeout fires first.
-final class Once<Value: Sendable>: @unchecked Sendable {
-    private let lock = NSLock()
-    private var continuation: CheckedContinuation<Value, Never>?
-    private var early: Value?
-
-    func set(_ continuation: CheckedContinuation<Value, Never>) {
-        lock.lock()
-        if let early { lock.unlock(); continuation.resume(returning: early); return }
-        self.continuation = continuation
-        lock.unlock()
-    }
-
-    func resume(_ value: Value) {
-        lock.lock()
-        guard let continuation else {
-            if early == nil { early = value }
-            lock.unlock()
-            return
-        }
-        self.continuation = nil
-        early = value
-        lock.unlock()
-        continuation.resume(returning: value)
+extension String {
+    /// The C string in a fixed-size `getnameinfo` buffer, up to its first NUL.
+    init(nulTerminated buffer: [CChar]) {
+        self.init(decoding: buffer.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
     }
 }
 
-final class Box<Value>: @unchecked Sendable {
-    private let lock = NSLock()
-    private var stored: Value
-    init(_ value: Value) { stored = value }
+final class Once<Value: Sendable>: Sendable {
+    private struct State {
+        var continuation: CheckedContinuation<Value, Never>?
+        var early: Value?
+    }
+    private let state = Mutex(State())
+
+    func set(_ continuation: CheckedContinuation<Value, Never>) {
+        let early = state.withLock { state -> Value? in
+            if let early = state.early { return early }
+            state.continuation = continuation
+            return nil
+        }
+        if let early { continuation.resume(returning: early) }
+    }
+
+    func resume(_ value: Value) {
+        let continuation = state.withLock { state -> CheckedContinuation<Value, Never>? in
+            if state.early == nil { state.early = value }
+            defer { state.continuation = nil }
+            return state.continuation
+        }
+        continuation?.resume(returning: value)
+    }
+}
+
+final class Box<Value: Sendable>: Sendable {
+    private let stored: Mutex<Value>
+    init(_ value: Value) { stored = Mutex(value) }
     var value: Value {
-        get { lock.lock(); defer { lock.unlock() }; return stored }
-        set { lock.lock(); stored = newValue; lock.unlock() }
+        get { stored.withLock { $0 } }
+        set { stored.withLock { $0 = newValue } }
     }
 }

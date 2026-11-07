@@ -16,13 +16,8 @@ struct CertificateSummary: Equatable, Sendable {
         subject = SecCertificateCopySubjectSummary(certificate) as String? ?? "Unknown"
         var name: CFString?
         commonName = SecCertificateCopyCommonName(certificate, &name) == errSecSuccess ? name as String? : nil
-        if #available(iOS 18.0, macOS 15.0, *) {
-            notBefore = SecCertificateCopyNotValidBeforeDate(certificate) as Date?
-            notAfter = SecCertificateCopyNotValidAfterDate(certificate) as Date?
-        } else {
-            notBefore = nil
-            notAfter = nil
-        }
+        notBefore = SecCertificateCopyNotValidBeforeDate(certificate) as Date?
+        notAfter = SecCertificateCopyNotValidAfterDate(certificate) as Date?
         serialNumber = (SecCertificateCopySerialNumberData(certificate, nil) as Data?).map { Self.hex($0) }
         sha256 = Self.hex(Data(SHA256.hash(data: SecCertificateCopyData(certificate) as Data)))
         if let publicKey = SecCertificateCopyKey(certificate),
