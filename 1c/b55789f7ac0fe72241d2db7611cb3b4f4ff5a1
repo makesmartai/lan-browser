@@ -1,0 +1,40 @@
+LANBrowser/Certificates.swift
+  s_a6b82dded9af91::t_3bd3bb31eb38bb 19-20
+README.md
+  s_a6b82dded9af91::t_9e945b2a7199c2 5,79,93
+LANBrowser/BrowserTab.swift
+  s_a6b82dded9af91::t_3bd3bb31eb38bb 215
+Scripts/check.sh
+  s_a6b82dded9af91::t_35b08f13197602 5
+Scripts/check_favicons.sh
+  s_a6b82dded9af91::t_35b08f13197602 5
+LANBrowser.xcodeproj/project.pbxproj
+  s_a6b82dded9af91::t_3bd3bb31eb38bb 276,323,345,350,368,373
+  s_a6b82dded9af91::t_35b08f13197602 282,329
+  s_a6b82dded9af91::t_b0b5750b7a83b7 165,243-247,249-261,263-265,268,270-275,279,292-296,298-310,312-313,316-322,326,340,378
+LANBrowser/NetworkProbe.swift
+  s_a6b82dded9af91::t_35b08f13197602 2,319-324,327-332,336-339,341,345-347,349-350
+  s_a6b82dded9af91::t_c1ecf60578a256 118,192,261,312-318
+AGENTS.md
+  s_a6b82dded9af91::t_9e945b2a7199c2 7,90
+LANBrowser/BrowserScreen.swift
+  s_a6b82dded9af91::t_35b08f13197602 624
+LANBrowser.xcodeproj/xcshareddata/xcschemes/LANBrowser.xcscheme
+  s_a6b82dded9af91::t_b99c713c1af922 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1cb55789f7ac0fe72241d2db7611cb3b4f4ff5a1",
+  "prompts": {},
+  "sessions": {
+    "s_a6b82dded9af91": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e78dcd89-ebe4-4c5e-959a-7222ccacbdd3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jesse goodier <31039225+jessegoodier@users.noreply.github.com>"
+    }
+  }
+}
