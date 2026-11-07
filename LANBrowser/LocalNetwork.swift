@@ -126,11 +126,29 @@ final class LocalNetwork: ObservableObject {
         Task { await check(bookmarks.filter { checkedURLs[$0.id] != $0.url }) }
     }
 
+    /// Pull to refresh re-checks bookmarks, then the list asks which scan to run.
+    func recheck() async {
+        guard isEnabled else { return }
+        await check(bookmarks)
+    }
+
     /// Pull to refresh: scan again and re-check every bookmark.
     func refresh() async {
         guard isEnabled else { return }
         scan()
         await check(bookmarks)
+    }
+
+    /// Starts the scan the user just chose. Choosing a port scan confirms that plan for this network.
+    func startChosenScan(_ preset: PortScanPreset) {
+        guard isEnabled, !isSearching else { return }
+        if preset == .off {
+            turnOffPortScan()
+            scan(includePorts: false)
+            return
+        }
+        if let plan = plan(for: preset) { confirm(plan) }
+        scan()
     }
 
     /// Runs Bonjour discovery and, when the user has confirmed one for this network, the port scan.
