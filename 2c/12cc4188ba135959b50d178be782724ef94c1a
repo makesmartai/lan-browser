@@ -1,0 +1,41 @@
+LANBrowser/LocalNetwork.swift
+  s_913fe60962038f::t_506a820af54934 142-144,148,150
+LANBrowser/SettingsView.swift
+  s_913fe60962038f::t_9379be96ea7353 54
+docs/TESTING.md
+  s_913fe60962038f::t_93686ddf3a5e0c 48
+  s_913fe60962038f::t_71da9b1646efbf 49
+  s_913fe60962038f::t_33c273fad5af5b 93
+LANBrowser/Info.plist
+  s_913fe60962038f::t_a71a366d601e63 45
+AGENTS.md
+  s_913fe60962038f::t_15936939c8d5cf 39
+  s_913fe60962038f::t_fca4618d57f33c 103
+README.md
+  s_913fe60962038f::t_36e2f206cc3f8d 69
+  s_913fe60962038f::t_8625f29b80727f 70
+LANBrowser/NetworkViews.swift
+  s_913fe60962038f::t_ccc8f7ec17c2c2 138
+  s_913fe60962038f::t_257a9b02b900f9 191,194
+SUPPORT.md
+  s_913fe60962038f::t_9cfa25514d6b7b 17
+LANBrowser/privacy_policy.md
+  s_913fe60962038f::t_9620c3ff128542 26
+  s_913fe60962038f::t_a3fafe79b5a63f 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2c12cc4188ba135959b50d178be782724ef94c1a",
+  "prompts": {},
+  "sessions": {
+    "s_913fe60962038f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f60a1e94-16b0-42b5-810e-7c8915472ecc",
+        "model": "grok-4.7"
+      },
+      "human_author": "jesse goodier <31039225+jessegoodier@users.noreply.github.com>"
+    }
+  }
+}
