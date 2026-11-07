@@ -58,8 +58,9 @@ struct DiscoveredSection: View {
     let alternateOpen: (title: String, action: (DiscoveredService) -> Void)
     let save: (DiscoveredService) -> Void
     let rename: (DiscoveredService) -> Void
+    @Binding var choosingScan: Bool
     @ViewState private var expanded = true
-    @ViewState private var reviewing: PortScanPlan?
+    @ViewState private var reviewing: PortScanPreset?
     @Environment(\.openURL) private var openURL
 
     private var services: [DiscoveredService] {
@@ -123,23 +124,21 @@ struct DiscoveredSection: View {
                     Spacer()
                     if network.isSearching && !services.isEmpty { ProgressView().controlSize(.small) }
                     if !services.isEmpty { Text("\(services.count)").foregroundStyle(.secondary) }
-                    Menu {
-                        Button("Scan Again", systemImage: "arrow.clockwise") { network.scan() }
-                            .disabled(network.isSearching)
-                        Button("Clear Results", systemImage: "trash", role: .destructive) { network.clearResults() }
-                            .disabled(network.services.isEmpty && network.lastScan == nil)
-                    } label: {
-                        Image(systemName: "ellipsis.circle").accessibilityLabel("Discovery options")
+                    Button { choosingScan = true } label: {
+                        Image(systemName: "arrow.clockwise")
                     }
                     .buttonStyle(.borderless)
+                    .disabled(network.isSearching)
+                    .accessibilityLabel("Scan Again")
                 }
             }
         } footer: {
-            Text("Web apps found by the last scan, except ones already in your bookmarks. Scan again from the ••• menu or pull down. Tap + to save one as a bookmark; swipe left to remove it from this list.")
+            Text("Web apps found by the last scan, except ones already in your bookmarks. The circular arrow, or a pull down, asks which scan to run. Tap + to save one as a bookmark; swipe left to remove it from this list.")
         }
         .animation(.default, value: services.map(\.id))
-        .sheet(item: $reviewing) { plan in
-            PortScanConfirmationSheet(preset: plan.preset, plan: plan) { confirmed in
+        .modifier(ScanChoiceDialog(network: network, isPresented: $choosingScan) { reviewing = $0 })
+        .sheet(item: $reviewing) { preset in
+            PortScanConfirmationSheet(preset: preset, plan: network.plan(for: preset)) { confirmed in
                 network.confirm(confirmed)
                 network.scan()
             }
@@ -173,7 +172,7 @@ struct DiscoveredSection: View {
                         Label("The port scan needs confirming for this network.", systemImage: "questionmark.circle")
                             .font(.caption).foregroundStyle(.orange)
                         Spacer()
-                        Button("Review") { reviewing = plan }.buttonStyle(.borderless).font(.caption)
+                        Button("Review") { reviewing = plan.preset }.buttonStyle(.borderless).font(.caption)
                     }
                 }
                 if network.networkChanged {
@@ -190,8 +189,28 @@ struct DiscoveredSection: View {
             HStack {
                 Text("Not scanned yet.").font(.subheadline).foregroundStyle(.secondary)
                 Spacer()
-                Button("Scan") { network.scan() }.buttonStyle(.borderless)
+                Button("Scan") { choosingScan = true }.buttonStyle(.borderless)
             }
+        }
+    }
+}
+
+/// The scan button asks which scan to run, then starts it.
+struct ScanChoiceDialog: ViewModifier {
+    @ObservedObject var network: LocalNetwork
+    @Binding var isPresented: Bool
+    /// A port scan that still needs the confirmation sheet.
+    let review: (PortScanPreset) -> Void
+
+    func body(content: Content) -> some View {
+        content.confirmationDialog("Scan Again", isPresented: $isPresented, titleVisibility: .visible) {
+            ForEach(PortScanPreset.scanChoices) { preset in
+                Button(preset.choiceLabel) {
+                    if let plan = network.startChosenScan(preset) { review(plan) }
+                }
+            }
+        } message: {
+            Text("Choose what this scan looks for. A port scan still asks you to confirm the addresses and ports before it runs.")
         }
     }
 }
@@ -226,7 +245,7 @@ struct PortScanConfirmationSheet: View {
                     }
                     Section {
                         Text("Every port above is tried on every address in the range (\(plan.connectionCount.formatted()) connections). Any that answer as a web page are listed, even if ports 80 and 443 don’t respond. Large scans can take several minutes. You can cancel a scan and keep the previous results.")
-                        Text("Runs only when you tap Scan Again or pull down on the bookmark list. Nothing is sent outside your network.")
+                        Text("Runs when you choose this scan from the circular arrow or a pull down on the bookmark list. Nothing is sent outside your network.")
                     }
                 } else {
                     Text("Join a Wi-Fi network to see which addresses would be scanned.").foregroundStyle(.secondary)

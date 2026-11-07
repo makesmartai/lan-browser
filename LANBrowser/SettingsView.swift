@@ -18,7 +18,6 @@ struct SettingsView: View {
     @ViewState private var confirmingReset = false
     @ViewState private var clearing = false
     @ViewState private var cleared = false
-    @ViewState private var reviewingPreset: PortScanPreset?
 
     private var version: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
@@ -47,34 +46,12 @@ struct SettingsView: View {
 
                 Section {
                     Toggle("Local Network Features", isOn: $network.isEnabled)
-                    if network.isEnabled {
-                        Button(network.isSearching ? "Scanning…" : "Scan Again", systemImage: "arrow.clockwise") { network.scan() }
-                            .disabled(network.isSearching)
-                        if let lastScan = network.lastScan {
-                            LabeledContent("Last Scan", value: lastScan.formatted(date: .abbreviated, time: .shortened))
-                        }
-                    }
-                    if network.isEnabled {
-                        Picker("Port Scan", selection: Binding(
-                            get: { network.portScanPreset },
-                            set: { preset in
-                                // Nothing changes until the user has seen the ports and range and confirmed.
-                                if preset == .off { network.turnOffPortScan() } else { reviewingPreset = preset }
-                            }
-                        )) {
-                            ForEach(PortScanPreset.allCases) { Text("\($0.title) (\($0.summary))").tag($0) }
-                        }
-                        if network.portScanPreset != .off {
-                            Text("Scans ports \(network.portScanPreset.ports.map(String.init).joined(separator: ", ")) on every address in the confirmed range when you tap Scan Again.")
-                                .font(.caption).foregroundStyle(.secondary)
-                        }
-                    }
                     Button("Clear Discovered Services", role: .destructive) { network.clearResults() }
                         .disabled(network.lastScan == nil && network.services.isEmpty)
                     Button("Reset Device Names", role: .destructive) { confirmingReset = true }
                         .disabled(devices.records.isEmpty)
                 } header: { Text("Local Network") } footer: {
-                    Text("Off by default. When on, LAN Browser scans once for web apps advertised with Bonjour, then only when you ask, and checks whether your bookmarks are reachable while the bookmark list is open. A port scan also finds web apps that don’t advertise themselves; it is off until you review and confirm the ports and addresses, and checks every selected port on every address in that range only when you scan. Scans also fetch site icons. You’re asked to allow Local Network access. Saved bookmarks are kept when results are refreshed or cleared. Nothing is sent to the developer.")
+                    Text("Off by default. When on, LAN Browser scans once for web apps advertised with Bonjour, then only when you ask from the circular arrow on On This Network, and checks whether your bookmarks are reachable while the bookmark list is open. That button asks you to choose Common Web Apps, Standard Web, or Bonjour Only. A port scan also finds web apps that don’t advertise themselves; it is off until you review and confirm the ports and addresses, and checks every selected port on every address in that range only when you scan. Scans also fetch site icons. You’re asked to allow Local Network access. Saved bookmarks are kept when results are refreshed or cleared. Nothing is sent to the developer.")
                 }
 
                 Section {
@@ -110,9 +87,6 @@ struct SettingsView: View {
                     }
                 }
             } message: { Text("You’ll be signed out of websites, and all tabs will close. Bookmarks, saved passwords and exported downloads are kept.") }
-            .sheet(item: $reviewingPreset) { preset in
-                PortScanConfirmationSheet(preset: preset, plan: network.plan(for: preset)) { network.confirm($0) }
-            }
             .confirmationDialog("Reset all device names?", isPresented: $confirmingReset, titleVisibility: .visible) {
                 Button("Reset Device Names", role: .destructive) { devices.resetAll() }
             } message: { Text("Custom names, remembered IP addresses and looked-up host names are forgotten. Bookmarks are kept.") }

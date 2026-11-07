@@ -319,6 +319,7 @@ struct CoreChecks {
         check(cache.load() == nil, "Clear Results deletes the cache")
 
         check(PortScanPreset.off.ports.isEmpty && PortScanPreset.standard.ports == [80, 443], "Off and Standard port lists")
+        check(PortScanPreset.scanChoices.map(\.choiceLabel) == ["Common Web Apps (22 ports)", "Standard Web (Ports 80 and 443)", "Bonjour Only"], "Scan prompt offers the three choices, widest first")
         check(PortScanPreset.common.ports.count == 22 && Set(PortScanPreset.common.ports).count == 22 && PortScanPreset.common.ports.contains(32400), "Common list has 22 distinct ports")
         let lan = IPv4Range(cidr: "10.0.2.183/22")!
         check(lan.cidr == "10.0.0.0/22" && lan.count == 1022 && lan.description == "10.0.0.1 – 10.0.3.254", "Parse a /22 from any address in it")

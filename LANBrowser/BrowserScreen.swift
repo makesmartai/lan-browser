@@ -50,6 +50,7 @@ struct BrowserScreen: View {
     @ViewState private var showingSettings = false
     @ViewState private var showingTabs = false
     @ViewState private var hiddenResponse: UUID?
+    @ViewState private var choosingScan = false
 
     init() {
         let devices = DeviceStore()
@@ -323,11 +324,16 @@ struct BrowserScreen: View {
                                 _ = saveBookmark(Bookmark(title: service.name, url: service.url.absoluteString, faviconPNG: service.faviconPNG))
                             }
                         },
-                        rename: { if let host = $0.url.host { rename(host) } }
+                        rename: { if let host = $0.url.host { rename(host) } },
+                        choosingScan: $choosingScan
                     )
                 }
             }
-            .refreshable { await network.refresh() }
+            .refreshable {
+                guard network.isEnabled else { return }
+                await network.recheck()
+                if !network.isSearching { choosingScan = true }
+            }
             .overlay {
                 if store.bookmarks.isEmpty && !network.isEnabled {
                     ContentUnavailableView("No bookmarks yet", systemImage: "bookmark", description: Text("Tap + to save a web address."))

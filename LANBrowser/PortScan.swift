@@ -5,6 +5,9 @@ enum PortScanPreset: String, CaseIterable, Identifiable, Codable, Sendable {
     case off, standard, common
     var id: String { rawValue }
 
+    /// Scan Again asks in this order: the widest port scan, then standard web ports, then Bonjour only.
+    static let scanChoices: [PortScanPreset] = [.common, .standard, .off]
+
     static let defaultsKey = "portScanPreset"
     static let confirmedCountKey = "portScanConfirmedCount"
 
@@ -29,6 +32,14 @@ enum PortScanPreset: String, CaseIterable, Identifiable, Codable, Sendable {
         case .off: return "Bonjour only"
         case .standard: return "Ports 80 and 443"
         case .common: return "\(ports.count) ports"
+        }
+    }
+
+    /// The label shown in the scan prompt.
+    var choiceLabel: String {
+        switch self {
+        case .off: return "Bonjour Only"
+        case .standard, .common: return "\(title) (\(summary))"
         }
     }
 }
