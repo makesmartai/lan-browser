@@ -42,7 +42,7 @@
 		<string>_wled._tcp</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>LAN Browser connects to web apps on devices in your local network, discovers services when Local Network Features is on, and checks connections when you ask. If you confirm a port scan, it checks every selected web port on every address in the local range when you start a scan. Saving a bookmark can also contact its site for an icon, even with Local Network Features off.</string>
+	<string>LAN Browser connects to web apps on devices in your local network, discovers services when Local Network Features is on, and checks connections when you ask. If you choose a port scan, it checks every selected web port on every address in the local range. Saving a bookmark can also contact its site for an icon, even with Local Network Features off.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

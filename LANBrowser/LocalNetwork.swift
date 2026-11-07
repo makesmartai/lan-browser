@@ -139,19 +139,16 @@ final class LocalNetwork: ObservableObject {
         await check(bookmarks)
     }
 
-    /// Starts the scan chosen from Scan Again. A port scan that still needs confirming is returned
-    /// instead of started, so the confirmation sheet can be shown first.
-    func startChosenScan(_ preset: PortScanPreset) -> PortScanPreset? {
-        guard isEnabled, !isSearching else { return nil }
+    /// Starts the scan the user just chose. Choosing a port scan confirms that plan for this network.
+    func startChosenScan(_ preset: PortScanPreset) {
+        guard isEnabled, !isSearching else { return }
         if preset == .off {
             turnOffPortScan()
             scan(includePorts: false)
-            return nil
+            return
         }
-        guard let plan = plan(for: preset),
-              portScanPreset == preset, !plan.needsConfirmation(confirmedCount: confirmedCount) else { return preset }
+        if let plan = plan(for: preset) { confirm(plan) }
         scan()
-        return nil
     }
 
     /// Runs Bonjour discovery and, when the user has confirmed one for this network, the port scan.

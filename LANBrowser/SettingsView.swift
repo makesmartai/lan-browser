@@ -51,7 +51,7 @@ struct SettingsView: View {
                     Button("Reset Device Names", role: .destructive) { confirmingReset = true }
                         .disabled(devices.records.isEmpty)
                 } header: { Text("Local Network") } footer: {
-                    Text("Off by default. When on, LAN Browser scans once for web apps advertised with Bonjour, then only when you ask from the circular arrow on On This Network, and checks whether your bookmarks are reachable while the bookmark list is open. That button asks you to choose Common Web Apps, Standard Web, or Bonjour Only. A port scan also finds web apps that don’t advertise themselves; it is off until you review and confirm the ports and addresses, and checks every selected port on every address in that range only when you scan. Scans also fetch site icons. You’re asked to allow Local Network access. Saved bookmarks are kept when results are refreshed or cleared. Nothing is sent to the developer.")
+                    Text("Off by default. When on, LAN Browser scans once for web apps advertised with Bonjour, then only when you ask from the circular arrow on On This Network, and checks whether your bookmarks are reachable while the bookmark list is open. That button asks you to choose Common Web Apps, Standard Web, or Bonjour Only. A port scan also finds web apps that don’t advertise themselves. Choosing one checks every port in that scan on every address in this network’s range. Scans also fetch site icons. You’re asked to allow Local Network access. Saved bookmarks are kept when results are refreshed or cleared. Nothing is sent to the developer.")
                 }
 
                 Section {

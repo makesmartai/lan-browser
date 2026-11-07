@@ -60,7 +60,6 @@ struct DiscoveredSection: View {
     let rename: (DiscoveredService) -> Void
     @Binding var choosingScan: Bool
     @ViewState private var expanded = true
-    @ViewState private var reviewing: PortScanPreset?
     @Environment(\.openURL) private var openURL
 
     private var services: [DiscoveredService] {
@@ -136,13 +135,7 @@ struct DiscoveredSection: View {
             Text("Web apps found by the last scan, except ones already in your bookmarks. The circular arrow, or a pull down, asks which scan to run. Tap + to save one as a bookmark; swipe left to remove it from this list.")
         }
         .animation(.default, value: services.map(\.id))
-        .modifier(ScanChoiceDialog(network: network, isPresented: $choosingScan) { reviewing = $0 })
-        .sheet(item: $reviewing) { preset in
-            PortScanConfirmationSheet(preset: preset, plan: network.plan(for: preset)) { confirmed in
-                network.confirm(confirmed)
-                network.scan()
-            }
-        }
+        .modifier(ScanChoiceDialog(network: network, isPresented: $choosingScan))
     }
 
     @ViewBuilder private var scanStatus: some View {
@@ -167,14 +160,6 @@ struct DiscoveredSection: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Scanned \(lastScan.formatted(.relative(presentation: .named))) · \(lastScan.formatted(date: .omitted, time: .shortened)) · \(network.lastScanPorts.map { "Bonjour + \($0.summary.lowercased())" } ?? "Bonjour")")
                     .font(.caption).foregroundStyle(.secondary)
-                if let plan = network.pendingConfirmation {
-                    HStack {
-                        Label("The port scan needs confirming for this network.", systemImage: "questionmark.circle")
-                            .font(.caption).foregroundStyle(.orange)
-                        Spacer()
-                        Button("Review") { reviewing = plan.preset }.buttonStyle(.borderless).font(.caption)
-                    }
-                }
                 if network.networkChanged {
                     Label("You’ve changed networks since this scan. Scan again to update.", systemImage: "exclamationmark.triangle")
                         .font(.caption).foregroundStyle(.orange)
@@ -199,72 +184,15 @@ struct DiscoveredSection: View {
 struct ScanChoiceDialog: ViewModifier {
     @ObservedObject var network: LocalNetwork
     @Binding var isPresented: Bool
-    /// A port scan that still needs the confirmation sheet.
-    let review: (PortScanPreset) -> Void
 
     func body(content: Content) -> some View {
         content.confirmationDialog("Scan Again", isPresented: $isPresented, titleVisibility: .visible) {
             ForEach(PortScanPreset.scanChoices) { preset in
-                Button(preset.choiceLabel) {
-                    if let plan = network.startChosenScan(preset) { review(plan) }
-                }
+                Button(preset.choiceLabel) { network.startChosenScan(preset) }
             }
         } message: {
-            Text("Choose what this scan looks for. A port scan still asks you to confirm the addresses and ports before it runs.")
+            Text("Choose what this scan looks for.")
         }
-    }
-}
-
-/// Shows exactly what a port scan would do before the user allows it.
-struct PortScanConfirmationSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    let preset: PortScanPreset
-    /// Nil when this device isn’t on Wi-Fi or Ethernet, so there is no network to describe.
-    let plan: PortScanPlan?
-    let confirm: (PortScanPlan) -> Void
-
-    var body: some View {
-        NavigationStack {
-            List {
-                if let plan {
-                    Section {
-                        LabeledContent("Range", value: plan.range.description)
-                        LabeledContent("Addresses", value: plan.addressCount.formatted())
-                    } header: { Text("Addresses") } footer: {
-                        Text("Your network, \(plan.range.cidr). This \(HostDevice.current.rawValue) (\(plan.deviceIP)) is skipped.")
-                    }
-                    Section("Ports · \(preset.title)") {
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 64), spacing: 8)], alignment: .leading, spacing: 8) {
-                            ForEach(preset.ports, id: \.self) { port in
-                                Text(String(port)).font(.callout.monospacedDigit())
-                                    .frame(maxWidth: .infinity).padding(.vertical, 4)
-                                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    Section {
-                        Text("Every port above is tried on every address in the range (\(plan.connectionCount.formatted()) connections). Any that answer as a web page are listed, even if ports 80 and 443 don’t respond. Large scans can take several minutes. You can cancel a scan and keep the previous results.")
-                        Text("Runs when you choose this scan from the circular arrow or a pull down on the bookmark list. Nothing is sent outside your network.")
-                    }
-                } else {
-                    Text("Join a Wi-Fi network to see which addresses would be scanned.").foregroundStyle(.secondary)
-                }
-            }
-            .navigationTitle("Scan Ports on This Network?")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Confirm") {
-                        if let plan { confirm(plan) }
-                        dismiss()
-                    }
-                    .disabled(plan == nil)
-                }
-            }
-        }
-        .presentationDetents([.large])
     }
 }
 
