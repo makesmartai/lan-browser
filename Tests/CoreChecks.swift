@@ -59,6 +59,8 @@ struct CoreChecks {
         check(store.bookmarks.isEmpty, "Fresh install has no seeded bookmarks")
         check(BookmarkStore(fileURL: file).bookmarks.isEmpty, "Fresh install stays empty after relaunch")
         check(BrowserAddress.bookmarkKey(Bookmark.wifiSignIn.url) == BrowserAddress.bookmarkKey("HTTP://WIFI.makesmart.ai:80"), "Wi-Fi Sign-In is a plain-HTTP bookmark")
+        check(Bookmark.isWiFiSignIn("wifi.makesmart.ai") && Bookmark.isWiFiSignIn("HTTP://WIFI.makesmart.ai:80/"), "Wi-Fi Sign-In matches equivalent addresses")
+        check(!Bookmark.isWiFiSignIn("https://wifi.makesmart.ai/") && !Bookmark.isWiFiSignIn("http://wifi.makesmart.ai/other"), "Wi-Fi Sign-In match stays exact")
         check(store.save(.wifiSignIn), "Offer adds Wi-Fi Sign-In")
         check(store.existing(for: "http://wifi.makesmart.ai") != nil && !store.save(Bookmark(title: "Again", url: "http://wifi.makesmart.ai/")), "Wi-Fi Sign-In is not added twice")
         let custom = Bookmark(title: "Router", url: "http://192.168.1.1/")

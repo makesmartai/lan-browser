@@ -15,6 +15,12 @@ struct Bookmark: Identifiable, Codable, Equatable {
     }
 
     static let wifiSignIn = Bookmark(title: "Wi-Fi Sign-In", url: "http://wifi.makesmart.ai/")
+
+    /// The sign-in page is contacted only when someone opens it: no icon fetch and no status check,
+    /// so the site learns nothing until it is actually used.
+    static func isWiFiSignIn(_ address: String) -> Bool {
+        BrowserAddress.bookmarkKey(address) == BrowserAddress.bookmarkKey(wifiSignIn.url)
+    }
 }
 
 @MainActor

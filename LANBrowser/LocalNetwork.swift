@@ -592,7 +592,7 @@ final class LocalNetwork: ObservableObject {
 
     private func check(_ bookmarks: [Bookmark]) async {
         let targets = bookmarks.compactMap { bookmark -> (UUID, DiagnosticTarget)? in
-            guard let url = BrowserAddress.parse(bookmark.url), let target = DiagnosticTarget(url: url) else { return nil }
+            guard !Bookmark.isWiFiSignIn(bookmark.url), let url = BrowserAddress.parse(bookmark.url), let target = DiagnosticTarget(url: url) else { return nil }
             let token = UUID()
             checkTokens[bookmark.id] = token
             checkedURLs[bookmark.id] = bookmark.url

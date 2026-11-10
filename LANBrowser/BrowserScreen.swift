@@ -286,7 +286,7 @@ struct BrowserScreen: View {
                                 SiteIcon(data: bookmark.faviconPNG)
                                     .frame(width: 30)
                                     .overlay(alignment: .bottomTrailing) {
-                                        if network.isEnabled { StatusDot(state: network.status[bookmark.id]) }
+                                        if network.isEnabled, !Bookmark.isWiFiSignIn(bookmark.url) { StatusDot(state: network.status[bookmark.id]) }
                                     }
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(bookmark.title).font(.headline).foregroundStyle(.primary)
@@ -593,7 +593,7 @@ struct BrowserScreen: View {
     private func saveBookmark(_ bookmark: Bookmark) -> Bool {
         guard store.save(bookmark) else { return false }
         guard let saved = store.bookmarks.first(where: { $0.id == bookmark.id }), saved.faviconPNG == nil,
-              let url = BrowserAddress.parse(saved.url) else { return true }
+              !Bookmark.isWiFiSignIn(saved.url), let url = BrowserAddress.parse(saved.url) else { return true }
         Task {
             if let png = await FaviconLoader.shared.load(url) {
                 store.updateFavicon(png, id: saved.id, url: saved.url)

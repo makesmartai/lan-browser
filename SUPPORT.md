@@ -7,7 +7,7 @@ In the app, open **Settings** (the gear button on the bookmark screen) for help,
 ## Connection troubleshooting
 
 - Home server: use the same Wi-Fi as the server. Check its address and port. Try that address in Safari; if both fail, check server availability, DNS, firewall, and guest-network isolation.
-- Wi-Fi sign-in: open the **Wi-Fi Sign-In** bookmark. If it isn’t in your list, add it from **Settings > Public Wi-Fi**. A sign-in page appears only on a network that intercepts HTTP and requires authentication. The app cannot guarantee interception or bypass the network’s requirements.
+- Wi-Fi sign-in: open the **Wi-Fi Sign-In** bookmark. If it isn’t in your list, add it from **Settings > Public Wi-Fi**. A sign-in page appears only on a network that intercepts HTTP and requires authentication. The app cannot guarantee interception or bypass the network’s requirements. The page doesn’t try to collect personal information, and LAN Browser contacts it only when you open it.
 - HTTPS on a local address: if a device’s certificate isn’t trusted (self-signed, expired, or wrong name), the page still opens with a red “!” strip. Tap it to see the certificate details, and compare the SHA-256 fingerprint with the device. Internet sites with invalid certificates are rejected; fix the certificate on the site, or use Safari.
 - Downloads: keep the app open until the save completes. Choose a destination in Files; exported files must be deleted through Files or your storage provider.
 - Login problems: **Settings > Clear Cookies & Website Data** signs you out, removes website storage, and closes your tabs. Your bookmarks and exported files remain.
