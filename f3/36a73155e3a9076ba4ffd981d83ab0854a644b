@@ -1,0 +1,38 @@
+LANBrowser/SettingsView.swift
+  s_111d961fd6e3b7::t_82b3a44f1a2acf 134,170
+SUPPORT.md
+  s_111d961fd6e3b7::t_82b3a44f1a2acf 10
+README.md
+  s_111d961fd6e3b7::t_82b3a44f1a2acf 15,66,139
+  s_111d961fd6e3b7::t_57742c57058c2d 27
+LANBrowser/LocalNetwork.swift
+  s_111d961fd6e3b7::t_303b41183c26e7 595
+docs/TESTING.md
+  s_111d961fd6e3b7::t_82b3a44f1a2acf 10
+LANBrowser/BrowserScreen.swift
+  s_111d961fd6e3b7::t_303b41183c26e7 289,596
+LANBrowser/Bookmarks.swift
+  s_111d961fd6e3b7::t_303b41183c26e7 18-23
+Tests/CoreChecks.swift
+  s_111d961fd6e3b7::t_303b41183c26e7 62-63
+AGENTS.md
+  s_111d961fd6e3b7::t_82b3a44f1a2acf 96,103,107
+LANBrowser/privacy_policy.md
+  s_111d961fd6e3b7::t_82b3a44f1a2acf 2,23-26,29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f336a73155e3a9076ba4ffd981d83ab0854a644b",
+  "prompts": {},
+  "sessions": {
+    "s_111d961fd6e3b7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "050fdeb6-4ac0-4120-bd15-3d84e83bf62f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jesse goodier <31039225+jessegoodier@users.noreply.github.com>"
+    }
+  }
+}
