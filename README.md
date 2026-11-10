@@ -12,7 +12,7 @@ LAN Browser is intended exclusively for use on trusted home networks. It isn’t
 
 ## What is included
 
-- Bookmarks start page on fresh launch and in new tabs. The first launch offers to add **Wi-Fi Sign-In — http://wifi.makesmart.ai/**, which reaches a Wi-Fi sign-in page; you can add it later from **Settings › Public Wi-Fi**. The app contacts it only when you open it, never fetching its icon or checking its status, and the site doesn’t try to collect personal information; it is only there to help. Then add your own LAN bookmarks.
+- Bookmarks start page on fresh launch and in new tabs. The first launch offers to add **Wi-Fi Sign-In — http://wifi.makesmart.ai/**, which reaches a Wi-Fi sign-in page; you can add it later from **Settings › Public Wi-Fi**. The app contacts it only when you open it, never fetching its icon or checking its status, and the site doesn’t try to collect personal information or contact any other site; it is only there to help. It is served only over plain HTTP. Then add your own LAN bookmarks.
 - Bottom address bar on iPhone and in narrow iPad windows, or a top bar at full width on iPad and Mac (see [iPad and Mac](#ipad-and-mac)). Omitted schemes default to HTTP. Explicit HTTPS and server redirects work normally.
 - Back, Forward, Reload/Stop, swipe navigation, loading state, and retryable errors. A page opened from the bookmark list shows **Done**, and Back returns to the list once the page has no earlier history; a tab opened just for that page closes.
 - Add, edit, delete, and reorder bookmarks, stored on the device. Equivalent URLs cannot be saved twice; adding an existing address opens its bookmark for editing. Network scans never remove saved bookmarks, including ones saved from discovery.
