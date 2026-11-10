@@ -51,6 +51,7 @@ struct BrowserScreen: View {
     @ViewState private var showingTabs = false
     @ViewState private var hiddenResponse: UUID?
     @ViewState private var choosingScan = false
+    @ViewState private var offeringSignIn = false
 
     init() {
         let devices = DeviceStore()
@@ -127,14 +128,29 @@ struct BrowserScreen: View {
             if phase == .background { session.saveTabs() }
         }
         .onChange(of: store.bookmarks) { _, bookmarks in network.bookmarksChanged(bookmarks) }
-        .sheet(isPresented: Binding(get: { !noticeAccepted }, set: { _ in })) {
-            TrustedNetworkNotice { noticeAccepted = true }
+        .sheet(isPresented: Binding(get: { !noticeAccepted || offeringSignIn }, set: { _ in })) {
+            // Only people who just accepted the notice see the offer; it is not repeated after a relaunch.
+            if offeringSignIn {
+                WiFiSignInOffer(
+                    add: { addSignInBookmark(); offeringSignIn = false },
+                    skip: { offeringSignIn = false }
+                )
+            } else {
+                TrustedNetworkNotice {
+                    offeringSignIn = true
+                    noticeAccepted = true
+                }
+            }
         }
         .sheet(isPresented: $editingAddress) {
             AddressEntry(text: $addressInput) { open(addressInput) }
         }
         .sheet(isPresented: $showingSettings) {
-            SettingsView(session: session, network: network, devices: devices) {
+            SettingsView(
+                session: session, network: network, devices: devices,
+                signInBookmarked: store.existing(for: Bookmark.wifiSignIn.url) != nil,
+                addSignIn: addSignInBookmark
+            ) {
                 showingSettings = false
                 tab.openBrowserCheck()
             }
@@ -307,7 +323,7 @@ struct BrowserScreen: View {
                     .onDelete(perform: store.delete)
                     .onMove(perform: store.move)
                 } footer: {
-                    Text("Home services and captive-portal login pages, one tap away. HTTP Forever is plain HTTP, so hotel and cafe Wi-Fi can show their sign-in screen. Swipe right on a bookmark to edit it, or touch and hold for more options.")
+                    Text("Home services and captive-portal login pages, one tap away. A plain-HTTP bookmark such as Wi-Fi Sign-In lets hotel and cafe Wi-Fi show its sign-in screen. Swipe right on a bookmark to edit it, or touch and hold for more options.")
                 }
                 // Below the bookmarks, so arriving results never push saved rows out from under a tap.
                 if network.isEnabled {
@@ -493,7 +509,7 @@ struct BrowserScreen: View {
             Image(systemName: tab.address.hasPrefix("https:") ? "lock" : "network")
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
-            TextField("Address · httpforever.com", text: $addressInput)
+            TextField("Address · wifi.makesmart.ai", text: $addressInput)
                 .keyboardType(.URL)
                 .textContentType(.URL)
                 .textInputAutocapitalization(.never)
@@ -586,6 +602,11 @@ struct BrowserScreen: View {
         return true
     }
 
+    private func addSignInBookmark() {
+        guard store.existing(for: Bookmark.wifiSignIn.url) == nil else { return }
+        _ = saveBookmark(.wifiSignIn)
+    }
+
     private func newBookmark() {
         editingAddress = false
         let onPage = !tab.showingStartPage
@@ -653,7 +674,7 @@ private struct AddressEntry: View {
     var body: some View {
         NavigationStack {
             Form {
-                TextField("Address · httpforever.com", text: $text)
+                TextField("Address · wifi.makesmart.ai", text: $text)
                     .keyboardType(.URL)
                     .textContentType(.URL)
                     .textInputAutocapitalization(.never)

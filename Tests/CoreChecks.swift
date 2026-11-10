@@ -56,7 +56,11 @@ struct CoreChecks {
         defer { try? FileManager.default.removeItem(at: directory) }
         let file = directory.appending(path: "bookmarks.json")
         let store = BookmarkStore(fileURL: file)
-        check(store.bookmarks.count == 1 && store.bookmarks[0] == .httpForever, "Seed HTTP Forever on first launch")
+        check(store.bookmarks.isEmpty, "Fresh install has no seeded bookmarks")
+        check(BookmarkStore(fileURL: file).bookmarks.isEmpty, "Fresh install stays empty after relaunch")
+        check(BrowserAddress.bookmarkKey(Bookmark.wifiSignIn.url) == BrowserAddress.bookmarkKey("HTTP://WIFI.makesmart.ai:80"), "Wi-Fi Sign-In is a plain-HTTP bookmark")
+        check(store.save(.wifiSignIn), "Offer adds Wi-Fi Sign-In")
+        check(store.existing(for: "http://wifi.makesmart.ai") != nil && !store.save(Bookmark(title: "Again", url: "http://wifi.makesmart.ai/")), "Wi-Fi Sign-In is not added twice")
         let custom = Bookmark(title: "Router", url: "http://192.168.1.1/")
         check(store.save(custom), "Save bookmark")
         var edited = custom
@@ -97,7 +101,9 @@ struct CoreChecks {
         let duplicate = Bookmark(title: "Second", url: "http://nas.local/")
         check(!uniqueStore.save(duplicate), "Reject duplicate add")
         check(uniqueStore.existing(for: duplicate.url) == firstBookmark, "Find existing bookmark for Add UI")
-        var colliding = uniqueStore.bookmarks[0]
+        let other = Bookmark(title: "Other", url: "http://other.local/")
+        check(uniqueStore.save(other), "Save second bookmark")
+        var colliding = other
         colliding.url = duplicate.url
         check(!uniqueStore.save(colliding), "Reject colliding edit")
         check(BookmarkStore(fileURL: uniqueFile).bookmarks == uniqueStore.bookmarks, "Rejected writes leave disk unchanged")
@@ -110,9 +116,9 @@ struct CoreChecks {
         movedBookmark.url = "http://elsewhere.local/"
         check(uniqueStore.save(movedBookmark), "Change bookmark address")
         check(uniqueStore.existing(for: movedBookmark.url)?.faviconPNG == nil, "Changing URL clears old icon")
-        uniqueStore.delete(at: IndexSet(integer: 1))
+        uniqueStore.delete(at: IndexSet(integer: 0))
         uniqueStore.updateFavicon(Data([9]), id: movedBookmark.id, url: movedBookmark.url)
-        check(uniqueStore.bookmarks.count == 1, "Late icon cannot resurrect deleted bookmark")
+        check(uniqueStore.bookmarks == [other], "Late icon cannot resurrect deleted bookmark")
         check(!corrupt.save(custom), "Corrupt bookmark files cannot be overwritten by a later save")
         let preservedAgain = try String(contentsOf: file, encoding: .utf8)
         check(preservedAgain == preserved, "Corrupt file preserved after save attempt")
@@ -227,7 +233,7 @@ struct CoreChecks {
         for host in ["nas.local", "NAS.LOCAL", "nas", "localhost", "10.0.0.2", "172.20.1.1", "192.168.1.1", "169.254.3.4", "127.0.0.1", "fe80::1", "fd00::1", "::1"] {
             check(ServiceCatalog.isLocalHost(host), "Local host: \(host)")
         }
-        for host in ["httpforever.com", "8.8.8.8", "172.32.0.1", "192.169.1.1", "2001:db8::1"] {
+        for host in ["wifi.makesmart.ai", "8.8.8.8", "172.32.0.1", "192.169.1.1", "2001:db8::1"] {
             check(!ServiceCatalog.isLocalHost(host), "Internet host: \(host)")
         }
 
@@ -262,7 +268,7 @@ struct CoreChecks {
         check(DeviceStore.isIPAddress("10.0.2.2") && DeviceStore.isIPAddress("fd00::1") && !DeviceStore.isIPAddress("studio.local") && !DeviceStore.isIPAddress("1.2.3.999"), "Detect IP addresses")
         check(DeviceStore.defaultName(for: "studio.local") == "studio", "Default name drops .local")
         check(DeviceStore.defaultName(for: "10.0.0.232", hostname: "brothera1b2c3d4.localdomain.") == "brothera1b2c3d4", "IP uses reverse-lookup name")
-        check(DeviceStore.defaultName(for: "10.0.0.232") == "10.0.0.232" && DeviceStore.defaultName(for: "httpforever.com") == "httpforever.com", "Default name falls back to the host")
+        check(DeviceStore.defaultName(for: "10.0.0.232") == "10.0.0.232" && DeviceStore.defaultName(for: "wifi.makesmart.ai") == "wifi.makesmart.ai", "Default name falls back to the host")
         let devicesFile = directory.appending(path: "devices.json")
         let devices = DeviceStore(fileURL: devicesFile)
         let studio = URL(string: "http://studio.local:8888/")!

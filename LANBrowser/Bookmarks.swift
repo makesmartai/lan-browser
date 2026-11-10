@@ -14,7 +14,7 @@ struct Bookmark: Identifiable, Codable, Equatable {
         self.faviconPNG = faviconPNG
     }
 
-    static let httpForever = Bookmark(title: "HTTP Forever Captive Portal", url: "http://httpforever.com/")
+    static let wifiSignIn = Bookmark(title: "Wi-Fi Sign-In", url: "http://wifi.makesmart.ai/")
 }
 
 @MainActor
@@ -52,7 +52,8 @@ final class BookmarkStore: ObservableObject {
                 errorMessage = "Your bookmarks could not be read. The saved file has been left in place. \(error.localizedDescription)"
             }
         } else {
-            bookmarks = [.httpForever]
+            // A fresh install starts empty; the first-use offer adds Wi-Fi Sign-In only if the user agrees.
+            bookmarks = []
             persist(bookmarks)
         }
     }

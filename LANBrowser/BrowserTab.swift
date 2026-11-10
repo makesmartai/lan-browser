@@ -188,7 +188,7 @@ final class BrowserTab: NSObject, ObservableObject, Identifiable {
         </head><body><h1>Browser Check</h1>
         <p>If you can read this page, page rendering works. This check is built into LAN Browser and does not contact a server.</p>
         <ul><li><button onclick="const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['LAN Browser download works.\\n'],{type:'application/octet-stream'}));a.download='lan-browser-check.txt';document.body.appendChild(a);a.click();a.remove();">Save a sample file</button></li>
-        <li><a href="http://httpforever.com/">Open HTTP Forever (internet or captive Wi-Fi required)</a></li>
+        <li><a href="http://wifi.makesmart.ai/">Open Wi-Fi Sign-In (internet or captive Wi-Fi required)</a></li>
         <li><a href="https://example.com/">Open an HTTPS page (internet required)</a></li></ul>
         <p>Save the sample file to Files, then open it to check its contents. Keep LAN Browser open until the save finishes.</p>
         <p>This local check does not test Wi-Fi portal interception or connectivity to your home server.</p>
@@ -214,7 +214,7 @@ final class BrowserTab: NSObject, ObservableObject, Identifiable {
               !(nsError.domain == "WebKitErrorDomain" && nsError.code == 102) else { return }
         let failingURL = (nsError.userInfo[NSURLErrorFailingURLErrorKey] as? URL)?.absoluteString ?? requestedURL?.absoluteString
         let underlying = (nsError.userInfo[NSUnderlyingErrorKey] as? NSError).map { (domain: $0.domain, code: $0.code) }
-        pageError = "Couldn’t load this page. On a home network, check the address and port. On public Wi-Fi, open HTTP Forever so the captive portal can show its sign-in page.\n\n\(error.localizedDescription)\n\n"
+        pageError = "Couldn’t load this page. On a home network, check the address and port. On public Wi-Fi, open the Wi-Fi Sign-In page so the captive portal can show its sign-in page.\n\n\(error.localizedDescription)\n\n"
             + ErrorText.details(domain: nsError.domain, code: nsError.code, url: failingURL, underlying: underlying)
         synchronize()
     }

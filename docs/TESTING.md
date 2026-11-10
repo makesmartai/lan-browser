@@ -7,7 +7,7 @@ Automated checks run with `Scripts/check.sh`; see the [README](../README.md#test
 - From the bookmark screen, open **Settings** (gear). Verify the privacy policy is readable offline and that **Ask for Help or Report a Problem** opens GitHub Issues.
 - Run **Browser Check** offline, save the sample file, and open it in Files.
 - Sign in to a test website, then use **Clear Cookies & Website Data** in Settings. Confirm the website session is signed out, all tabs close except one blank tab, and bookmarks and exported files remain.
-- First launch shows **HTTP Forever Captive Portal** in bookmarks. Open it and confirm [http://httpforever.com/](http://httpforever.com/) loads over HTTP. On a captive network, confirm the sign-in page appears instead.
+- First launch shows the notice, then the **Public Wi-Fi Sign-In** offer. Tap **Not Now** and confirm bookmarks stay empty. Open **Settings > Public Wi-Fi** and tap **Add Wi-Fi Sign-In Bookmark**; the button should then be disabled. Reset, then tap **Add Bookmark** on the offer and confirm it adds the bookmark. Open it and confirm [http://wifi.makesmart.ai/](http://wifi.makesmart.ai/) loads over HTTP. On a captive network, confirm the sign-in page appears instead. Relaunch and confirm the offer does not repeat. To reset, delete the app, or run `defaults delete com.jesse.lanbrowser trustedNetworkNoticeAccepted` and remove `bookmarks.json` from the app’s Application Support folder.
 - First launch shows the “For Trusted Home Networks” notice once. Tap **I Understand**, force-quit, relaunch, and confirm it doesn’t return.
 - Test with the keyboard visible, in landscape, in dark mode, and with larger system text.
 
