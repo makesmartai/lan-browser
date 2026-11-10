@@ -1,0 +1,50 @@
+LANBrowser/BrowserScreen.swift
+  s_8385410979e313::t_8757599fd4754f 54,131-143,149-153,326,605-607
+  s_8385410979e313::t_ad37523005dc17 512,677
+  s_8385410979e313::t_cf25eb521a626e 608-609
+LANBrowser/Bookmarks.swift
+  s_8385410979e313::t_8757599fd4754f 55-56
+  s_8385410979e313::t_ad37523005dc17 17
+LANBrowser/BrowserTab.swift
+  s_8385410979e313::t_ad37523005dc17 191,217
+docs/TESTING.md
+  s_8385410979e313::t_464ed56591da03 10
+LANBrowser/privacy_policy.md
+  s_8385410979e313::t_d80fd6eab593f2 23
+  s_8385410979e313::t_ad37523005dc17 26
+  s_8385410979e313::t_839483b0eaf42d 2
+Tests/CoreChecks.swift
+  s_8385410979e313::t_ad37523005dc17 236,271
+  s_8385410979e313::t_8757599fd4754f 59-63,104-106,119,121
+LANBrowser/BrowserModel.swift
+  s_8385410979e313::t_ad37523005dc17 271
+README.md
+  s_8385410979e313::t_ad37523005dc17 9,66,124-125
+  s_8385410979e313::t_41025a38274e88 123
+  s_8385410979e313::t_923c6c9c621b67 15
+AGENTS.md
+  s_8385410979e313::t_4dd8b3200a3423 96
+  s_8385410979e313::t_b68e7d2a9d64a7 40
+LANBrowser/SettingsView.swift
+  s_8385410979e313::t_8757599fd4754f 12-13,41-47,131-161,170
+LANBrowser.xcodeproj/project.pbxproj
+  s_8385410979e313::t_aae01054e6b0d3 340,350,368,378
+SUPPORT.md
+  s_8385410979e313::t_7af7e2070f128e 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "06d9d63d50d16f5bbc63901c19f43d57d9a9cede",
+  "prompts": {},
+  "sessions": {
+    "s_8385410979e313": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d93faa1d-20cf-4847-8197-31f02013b230",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "jesse goodier <31039225+jessegoodier@users.noreply.github.com>"
+    }
+  }
+}
