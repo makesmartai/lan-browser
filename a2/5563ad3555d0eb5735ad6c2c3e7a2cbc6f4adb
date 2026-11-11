@@ -1,0 +1,33 @@
+Tests/CoreChecks.swift
+  s_111d961fd6e3b7::t_4acc4ee8629670 59,64
+LANBrowser/BrowserScreen.swift
+  s_111d961fd6e3b7::t_4acc4ee8629670 130-131
+LANBrowser/SettingsView.swift
+  s_111d961fd6e3b7::t_4acc4ee8629670 45,139
+AGENTS.md
+  s_111d961fd6e3b7::t_88718f4b6be23c 40,96
+docs/TESTING.md
+  s_111d961fd6e3b7::t_88718f4b6be23c 10
+LANBrowser/privacy_policy.md
+  s_111d961fd6e3b7::t_88718f4b6be23c 2,23
+README.md
+  s_111d961fd6e3b7::t_88718f4b6be23c 15,89,123
+LANBrowser/Bookmarks.swift
+  s_111d961fd6e3b7::t_4acc4ee8629670 61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a25563ad3555d0eb5735ad6c2c3e7a2cbc6f4adb",
+  "prompts": {},
+  "sessions": {
+    "s_111d961fd6e3b7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "050fdeb6-4ac0-4120-bd15-3d84e83bf62f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jesse goodier <31039225+jessegoodier@users.noreply.github.com>"
+    }
+  }
+}
