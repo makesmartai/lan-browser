@@ -1,0 +1,46 @@
+LANBrowser/PortScan.swift
+  s_111d961fd6e3b7::t_706ced45ace994 101
+LANBrowser/BrowserScreen.swift
+  s_111d961fd6e3b7::t_706ced45ace994 142
+  s_111d961fd6e3b7::t_6340636fc584be 108-111,138,587-589
+  s_111d961fd6e3b7::t_a0bb8d8e888238 590-591
+LANBrowser/SettingsView.swift
+  s_111d961fd6e3b7::t_706ced45ace994 58-59,91-92
+AGENTS.md
+  s_111d961fd6e3b7::t_c0f83150a6a7da 104
+  s_111d961fd6e3b7::t_f6cb4d8cfcb5fc 78
+README.md
+  s_111d961fd6e3b7::t_aae9f51a946584 69
+  s_111d961fd6e3b7::t_6da2ece96e1196 65
+  s_111d961fd6e3b7::t_75f352a1705c6e 143
+docs/TESTING.md
+  s_111d961fd6e3b7::t_5930ac70185224 44
+  s_111d961fd6e3b7::t_41f6eccb781e26 49
+  s_111d961fd6e3b7::t_cd25a11a613b6b 65
+LANBrowser/privacy_policy.md
+  s_111d961fd6e3b7::t_c47e4fb90d76e8 29
+SUPPORT.md
+  s_111d961fd6e3b7::t_3605893d10f3d8 17
+LANBrowser/NetworkViews.swift
+  s_111d961fd6e3b7::t_706ced45ace994 191,236,331
+  s_111d961fd6e3b7::t_dbc9c8eb331a42 316
+LANBrowser/LocalNetwork.swift
+  s_111d961fd6e3b7::t_706ced45ace994 47-50,104,158-161,191-200
+  s_111d961fd6e3b7::t_27c4f9190cec3e 201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5e3386cf7ec17bc3e5543f24386ecaaadc8c19f3",
+  "prompts": {},
+  "sessions": {
+    "s_111d961fd6e3b7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "050fdeb6-4ac0-4120-bd15-3d84e83bf62f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jesse goodier <31039225+jessegoodier@users.noreply.github.com>"
+    }
+  }
+}
