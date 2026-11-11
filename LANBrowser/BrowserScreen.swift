@@ -268,9 +268,18 @@ struct BrowserScreen: View {
                     }
                 }
                 Section {
-                    if store.bookmarks.isEmpty && network.isEnabled {
-                        Text("No bookmarks yet. Tap + to save a web address, or add one from On This Network below.")
-                            .foregroundStyle(.secondary)
+                    // A row rather than an overlay, so it scrolls with the card and footers and never covers them.
+                    if store.bookmarks.isEmpty {
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: "bookmark").font(.title2).foregroundStyle(.tint).frame(width: 30)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("No Bookmarks Yet").font(.headline)
+                                Text(network.isEnabled ? "Tap + to save a web address, or add one from On This Network below." : "Tap + to save a web address.")
+                                    .font(.subheadline).foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        .accessibilityElement(children: .combine)
                     }
                     ForEach(store.bookmarks) { bookmark in
                         Button {
@@ -343,11 +352,6 @@ struct BrowserScreen: View {
                 guard network.isEnabled else { return }
                 await network.recheck()
                 if !network.isSearching { choosingScan = true }
-            }
-            .overlay {
-                if store.bookmarks.isEmpty && !network.isEnabled {
-                    ContentUnavailableView("No bookmarks yet", systemImage: "bookmark", description: Text("Tap + to save a web address."))
-                }
             }
     }
 

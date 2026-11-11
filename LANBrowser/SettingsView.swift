@@ -39,21 +39,6 @@ struct SettingsView: View {
                 .onChange(of: restoreTabs) { _, _ in session.saveTabs() }
 
                 Section {
-                    Button("Add Wi-Fi Sign-In Bookmark", systemImage: "wifi", action: addSignIn)
-                        .disabled(signInBookmarked)
-                } header: { Text("Public Wi-Fi") } footer: {
-                    Text(signInBookmarked ? "The Wi-Fi Sign-In bookmark is in your list." : "Public Wi-Fi networks in hotels, cafes and airports show their sign-in page only when a device requests a plain-HTTP address; HTTPS sites can’t display it. This adds http://wifi.makesmart.ai/, a plain-HTTP page that doesn’t try to collect personal information and is only there to help. LAN Browser contacts it only when you open it.")
-                }
-
-                Section {
-                    Toggle("Offer to Save Passwords", isOn: $offerToSavePasswords)
-                    Toggle("AutoFill Saved Passwords", isOn: $autofillSavedPasswords)
-                    NavigationLink("Saved Passwords") { SavedPasswordsView() }
-                } header: { Text("Passwords") } footer: {
-                    Text("On by default. Each supported login submission offers to save its username and password in this device’s Keychain, including HTTP pages and passwords saved before. Turning offers off keeps existing passwords. AutoFill Saved Passwords is also on by default and fills matching login forms, including HTTP pages, without submitting them. View or delete them in Saved Passwords. HTTP traffic remains unencrypted.")
-                }
-
-                Section {
                     Toggle("Local Network Features", isOn: $network.isEnabled)
                     // Driven by a binding so choosing an unconfigured Custom scan can open this page directly.
                     NavigationLink(value: "customPorts") {
@@ -65,6 +50,21 @@ struct SettingsView: View {
                         .disabled(devices.records.isEmpty)
                 } header: { Text("Local Network") } footer: {
                     Text("Off by default. When you turn it on, LAN Browser asks whether to scan this network, and it scans only after you choose a scan. Afterward, scans run only when you ask from the circular arrow on On This Network, which offers Common Web Apps, Custom, Standard Web, or Bonjour Only. A port scan also finds web apps that don’t advertise themselves, and checks every port in the chosen scan on every address in this network’s range. Custom Scan Ports sets the ports for the Custom scan; editing them never starts a scan. LAN Browser also checks whether your bookmarks are reachable while the bookmark list is open. Scans also fetch site icons. You’re asked to allow Local Network access. Saved bookmarks are kept when results are refreshed or cleared. Nothing is sent to the developer.")
+                }
+
+                Section {
+                    Toggle("Offer to Save Passwords", isOn: $offerToSavePasswords)
+                    Toggle("AutoFill Saved Passwords", isOn: $autofillSavedPasswords)
+                    NavigationLink("Saved Passwords") { SavedPasswordsView() }
+                } header: { Text("Passwords") } footer: {
+                    Text("On by default. Each supported login submission offers to save its username and password in this device’s Keychain, including HTTP pages and passwords saved before. Turning offers off keeps existing passwords. AutoFill Saved Passwords is also on by default and fills matching login forms, including HTTP pages, without submitting them. View or delete them in Saved Passwords. HTTP traffic remains unencrypted.")
+                }
+
+                Section {
+                    Button("Add Wi-Fi Sign-In Bookmark", systemImage: "wifi", action: addSignIn)
+                        .disabled(signInBookmarked)
+                } header: { Text("Public Wi-Fi") } footer: {
+                    Text(signInBookmarked ? "The Wi-Fi Sign-In bookmark is in your list." : "Public Wi-Fi networks in hotels, cafes and airports show their sign-in page only when a device requests a plain-HTTP address; HTTPS sites can’t display it. This adds http://wifi.makesmart.ai/, a plain-HTTP page that doesn’t try to collect personal information and is only there to help. LAN Browser contacts it only when you open it.")
                 }
 
                 Section {

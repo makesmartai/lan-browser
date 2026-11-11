@@ -556,7 +556,7 @@ final class LocalNetwork: ObservableObject {
         }
         portScanProgress = PortScanProgress(phase: "Checking ports", done: 0, total: plan.connectionCount)
         let open = await Self.openPorts(plan) { done in
-            Task { @MainActor [weak self] in
+            Task { @MainActor [weak self = self] in
                 guard let self, portScanProgress?.phase == "Checking ports" else { return }
                 portScanProgress?.done = max(portScanProgress?.done ?? 0, done)
             }
