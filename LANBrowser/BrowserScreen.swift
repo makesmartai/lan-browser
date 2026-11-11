@@ -130,6 +130,9 @@ struct BrowserScreen: View {
         .sheet(isPresented: Binding(get: { !noticeAccepted }, set: { _ in })) {
             TrustedNetworkNotice { noticeAccepted = true }
         }
+        // Waits for the bookmark list, so turning the feature on from Settings asks there instead.
+        .firstScanPrompt(network, active: noticeAccepted && tab.showingStartPage && scenePhase == .active && sheet == nil
+                         && !showingSettings && !editingAddress && !showingInfo && !showingTabs)
         .sheet(isPresented: $editingAddress) {
             AddressEntry(text: $addressInput) { open(addressInput) }
         }

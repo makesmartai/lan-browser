@@ -55,12 +55,17 @@ struct SettingsView: View {
 
                 Section {
                     Toggle("Local Network Features", isOn: $network.isEnabled)
+                    NavigationLink {
+                        CustomPortsView(network: network)
+                    } label: {
+                        LabeledContent("Custom Scan Ports", value: PortList.countText(network.customPorts.count))
+                    }
                     Button("Clear Discovered Services", role: .destructive) { network.clearResults() }
                         .disabled(network.lastScan == nil && network.services.isEmpty)
                     Button("Reset Device Names", role: .destructive) { confirmingReset = true }
                         .disabled(devices.records.isEmpty)
                 } header: { Text("Local Network") } footer: {
-                    Text("Off by default. When on, LAN Browser scans once for web apps advertised with Bonjour, then only when you ask from the circular arrow on On This Network, and checks whether your bookmarks are reachable while the bookmark list is open. That button asks you to choose Common Web Apps, Standard Web, or Bonjour Only. A port scan also finds web apps that don’t advertise themselves. Choosing one checks every port in that scan on every address in this network’s range. Scans also fetch site icons. You’re asked to allow Local Network access. Saved bookmarks are kept when results are refreshed or cleared. Nothing is sent to the developer.")
+                    Text("Off by default. When you turn it on, LAN Browser asks whether to scan this network, and it scans only after you choose a scan. Afterward, scans run only when you ask from the circular arrow on On This Network, which offers Common Web Apps, Custom, Standard Web, or Bonjour Only. A port scan also finds web apps that don’t advertise themselves, and checks every port in the chosen scan on every address in this network’s range. Custom Scan Ports sets the ports for the Custom scan; editing them never starts a scan. LAN Browser also checks whether your bookmarks are reachable while the bookmark list is open. Scans also fetch site icons. You’re asked to allow Local Network access. Saved bookmarks are kept when results are refreshed or cleared. Nothing is sent to the developer.")
                 }
 
                 Section {
@@ -84,6 +89,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .firstScanPrompt(network)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
             .confirmationDialog("Clear all cookies and website data?", isPresented: $confirmingClear, titleVisibility: .visible) {
                 Button("Clear Website Data", role: .destructive) {

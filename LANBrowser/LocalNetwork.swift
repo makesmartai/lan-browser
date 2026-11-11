@@ -8,8 +8,8 @@ enum Reachability: Equatable, Sendable {
 
 /// Opt-in Bonjour discovery and bookmark reachability. Nothing here runs until the user
 /// turns on Local Network Features, because these native checks trigger the iOS
-/// Local Network prompt (WebKit page loads do not). Discovery runs once when the feature is
-/// first turned on and afterwards only when the user asks; the last scan is kept on disk.
+/// Local Network prompt (WebKit page loads do not). Turning the feature on asks which scan to run,
+/// if any; after that, discovery runs only when the user asks. The last scan is kept on disk.
 @MainActor
 final class LocalNetwork: ObservableObject {
     @Published var isEnabled: Bool {
@@ -38,6 +38,12 @@ final class LocalNetwork: ObservableObject {
     @Published private(set) var portScanProgress: PortScanProgress?
     /// The ports the last saved scan included, for the scan summary line.
     @Published private(set) var lastScanPorts: PortScanPreset?
+    /// The feature was just turned on with no scan yet, so the list asks which scan to run.
+    @Published private(set) var askingFirstScan = false
+    /// The Custom scan’s ports, edited in Settings and saved on the device.
+    @Published var customPorts: PortList {
+        didSet { defaults.set(customPorts.text, forKey: PortList.defaultsKey) }
+    }
 
     struct PortScanProgress: Equatable {
         var phase: String
@@ -47,11 +53,11 @@ final class LocalNetwork: ObservableObject {
 
     private static let enabledKey = "localNetworkFeatures"
     private static let cardKey = "localNetworkCardDismissed"
-    private static let autoScanKey = "localNetworkAutoScanned"
+    /// Set once the first-scan question is answered. The name predates that question.
+    private static let firstScanKey = "localNetworkAutoScanned"
     private static let maxConcurrentChecks = 4
     private static let settleDelay = Duration.seconds(2)
     private static let maxSearch = Duration.seconds(10)
-    private static let maxConcurrentPortChecks = 128
     let devices: DeviceStore
     private let defaults: UserDefaults
     private let cache: DiscoveryCache
@@ -69,9 +75,11 @@ final class LocalNetwork: ObservableObject {
     private var checkedURLs: [Bookmark.ID: String] = [:]
     private var checkTokens: [Bookmark.ID: UUID] = [:]
     private var reverseLookups: Set<String> = []
-    /// The one automatic scan is still owed, e.g. after updating from a version without a cache.
-    private var autoScanPending = false
-    private var lanInterface: String?
+    /// Published so plan-based counts on screen update once the Wi-Fi interface is known.
+    @Published private(set) var lanInterface: String?
+    /// A scan chosen before the first network update, so its range isn’t known yet.
+    private var queuedChoice: PortScanPreset?
+    private var pathReported = false
     private var scanned: [DiscoveredService] = []
     private var scanPorts = PortScanPreset.off
     private var portScanTask: Task<Void, Never>?
@@ -88,10 +96,11 @@ final class LocalNetwork: ObservableObject {
         isEnabled = defaults.bool(forKey: Self.enabledKey)
         cardDismissed = defaults.bool(forKey: Self.cardKey)
         portScanPreset = PortScanPreset(rawValue: defaults.string(forKey: PortScanPreset.defaultsKey) ?? "") ?? .off
+        customPorts = defaults.string(forKey: PortList.defaultsKey).flatMap(PortList.init(text:)) ?? .common
         if isEnabled {
             loadCache()
             startMonitoring()
-            autoScanPending = lastScan == nil && !defaults.bool(forKey: Self.autoScanKey)
+            askingFirstScan = lastScan == nil && !defaults.bool(forKey: Self.firstScanKey)
         }
     }
 
@@ -101,7 +110,6 @@ final class LocalNetwork: ObservableObject {
         guard self.visible != visible else { return }
         self.visible = visible
         if visible && isEnabled {
-            if autoScanPending { autoScan() }
             Task { await checkAll() }
         } else {
             checkTokens.removeAll()
@@ -142,6 +150,11 @@ final class LocalNetwork: ObservableObject {
     /// Starts the scan the user just chose. Choosing a port scan confirms that plan for this network.
     func startChosenScan(_ preset: PortScanPreset) {
         guard isEnabled, !isSearching else { return }
+        // Right after the feature is turned on, the path monitor hasn’t reported the Wi-Fi interface yet.
+        if preset != .off, pathMonitor != nil, !pathReported {
+            queuedChoice = preset
+            return
+        }
         if preset == .off {
             turnOffPortScan()
             scan(includePorts: false)
@@ -152,7 +165,7 @@ final class LocalNetwork: ObservableObject {
     }
 
     /// Runs Bonjour discovery and, when the user has confirmed one for this network, the port scan.
-    /// The automatic first scan passes `includePorts: false`, so ports are only ever scanned on request.
+    /// Every caller is a scan the user chose; Bonjour Only passes `includePorts: false`.
     func scan(includePorts: Bool = true) {
         guard isEnabled else { return }
         startBrowsing()
@@ -166,10 +179,12 @@ final class LocalNetwork: ObservableObject {
         portScanTask = Task { await runPortScan(plan) }
     }
 
-    private func autoScan() {
-        autoScanPending = false
-        defaults.set(true, forKey: Self.autoScanKey)
-        scan(includePorts: false)
+    /// The answer to the first-scan question: a scan to start, or nil for no scan.
+    func answerFirstScan(_ preset: PortScanPreset?) {
+        guard askingFirstScan else { return }
+        askingFirstScan = false
+        defaults.set(true, forKey: Self.firstScanKey)
+        if let preset { startChosenScan(preset) }
     }
 
     // MARK: Port scan settings
@@ -181,11 +196,12 @@ final class LocalNetwork: ObservableObject {
 
     /// What a port scan with this preset would cover on the current network, or nil off Wi-Fi.
     func plan(for preset: PortScanPreset) -> PortScanPlan? {
-        guard preset != .off, let lanInterface,
+        let ports = preset.ports(custom: customPorts)
+        guard !ports.isEmpty, let lanInterface,
               let network = NetworkProbe.ipv4Network(of: lanInterface),
               let deviceIP = NetworkProbe.ipv4Address(of: lanInterface),
               let range = IPv4Range.scanRange(network: network, deviceIP: deviceIP) else { return nil }
-        return PortScanPlan(preset: preset, range: range, deviceIP: deviceIP)
+        return PortScanPlan(preset: preset, ports: ports, range: range, deviceIP: deviceIP)
     }
 
     func confirm(_ plan: PortScanPlan) {
@@ -229,13 +245,16 @@ final class LocalNetwork: ObservableObject {
         if isEnabled {
             startMonitoring()
             loadCache()
-            if lastScan == nil { autoScan() }
+            askingFirstScan = lastScan == nil
             if visible { Task { await checkAll() } }
         } else {
+            askingFirstScan = false
+            queuedChoice = nil
             cancelIcons()
             if isSearching { cancelScan() }
             pathMonitor?.cancel()
             pathMonitor = nil
+            pathReported = false
             currentNetwork = nil
             checkTokens.removeAll()
             status.removeAll()
@@ -270,9 +289,14 @@ final class LocalNetwork: ObservableObject {
 
     private func pathChanged(_ fingerprint: String?, interface: String?) {
         lanInterface = interface
+        pathReported = true
         let previous = currentNetwork
         currentNetwork = fingerprint
         updateNetworkChanged()
+        if let choice = queuedChoice {
+            queuedChoice = nil
+            startChosenScan(choice)
+        }
         guard previous != nil, previous != fingerprint, isEnabled, visible else { return }
         Task { await checkAll() }
     }
@@ -510,9 +534,12 @@ final class LocalNetwork: ObservableObject {
                 scheduleSettle()
             }
         }
-        var open: [(String, Int)] = []
-        await connectAll(plan.targets, phase: "Checking ports", timeout: 1.5) { host, port, outcome in
-            if outcome == .connected { open.append((host, port)) }
+        portScanProgress = PortScanProgress(phase: "Checking ports", done: 0, total: plan.connectionCount)
+        let open = await Self.openPorts(plan) { done in
+            Task { @MainActor [weak self] in
+                guard let self, portScanProgress?.phase == "Checking ports" else { return }
+                portScanProgress?.done = max(portScanProgress?.done ?? 0, done)
+            }
         }
         guard !Task.isCancelled else { return }
 
@@ -553,25 +580,31 @@ final class LocalNetwork: ObservableObject {
         }
     }
 
-    private func connectAll(_ targets: [(String, Int)], phase: String, timeout: TimeInterval,
-                            handle: (String, Int, NetworkProbe.Outcome) -> Void) async {
-        portScanProgress = PortScanProgress(phase: phase, done: 0, total: targets.count)
+    /// Runs off the main actor, so tens of thousands of results don’t each wait for it, and
+    /// reports progress about ten times a second instead of redrawing the list per result.
+    private nonisolated static func openPorts(_ plan: PortScanPlan, report: @escaping @Sendable (Int) -> Void) async -> [(String, Int)] {
+        let targets = plan.targets
+        var open: [(String, Int)] = []
         await withTaskGroup(of: (String, Int, NetworkProbe.Outcome).self) { group in
             var pending = targets[...]
             func addNext() {
                 guard !Task.isCancelled, let (host, port) = pending.popFirst() else { return }
-                group.addTask { (host, port, await NetworkProbe.connect(host: host, port: port, timeout: timeout)) }
+                group.addTask { (host, port, await NetworkProbe.connect(host: host, port: port, timeout: PortScan.connectTimeout)) }
             }
-            for _ in 0..<Self.maxConcurrentPortChecks { addNext() }
+            for _ in 0..<PortScan.concurrentChecks { addNext() }
             var done = 0
+            var reported = ContinuousClock.now
             for await (host, port, outcome) in group {
-                handle(host, port, outcome)
+                if outcome == .connected { open.append((host, port)) }
                 done += 1
-                // Publishing every result would redraw the list thousands of times.
-                if done % 16 == 0 || done == targets.count { portScanProgress?.done = done }
+                if done == targets.count || reported.duration(to: .now) >= .milliseconds(100) {
+                    reported = .now
+                    report(done)
+                }
                 addNext()
             }
         }
+        return open
     }
 
     // MARK: Reachability
