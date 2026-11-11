@@ -51,7 +51,6 @@ struct BrowserScreen: View {
     @ViewState private var showingTabs = false
     @ViewState private var hiddenResponse: UUID?
     @ViewState private var choosingScan = false
-    @ViewState private var offeringSignIn = false
 
     init() {
         let devices = DeviceStore()
@@ -128,19 +127,8 @@ struct BrowserScreen: View {
             if phase == .background { session.saveTabs() }
         }
         .onChange(of: store.bookmarks) { _, bookmarks in network.bookmarksChanged(bookmarks) }
-        .sheet(isPresented: Binding(get: { !noticeAccepted || offeringSignIn }, set: { _ in })) {
-            // Only people who just accepted the notice see the offer; it is not repeated after a relaunch.
-            if offeringSignIn {
-                WiFiSignInOffer(
-                    add: { addSignInBookmark(); offeringSignIn = false },
-                    skip: { offeringSignIn = false }
-                )
-            } else {
-                TrustedNetworkNotice {
-                    offeringSignIn = true
-                    noticeAccepted = true
-                }
-            }
+        .sheet(isPresented: Binding(get: { !noticeAccepted }, set: { _ in })) {
+            TrustedNetworkNotice { noticeAccepted = true }
         }
         .sheet(isPresented: $editingAddress) {
             AddressEntry(text: $addressInput) { open(addressInput) }

@@ -12,7 +12,7 @@ LAN Browser is intended exclusively for use on trusted home networks. It isn’t
 
 ## What is included
 
-- Bookmarks start page on fresh launch and in new tabs. The first launch offers to add **Wi-Fi Sign-In — http://wifi.makesmart.ai/**, which reaches a Wi-Fi sign-in page; you can add it later from **Settings › Public Wi-Fi**. The app contacts it only when you open it, never fetching its icon or checking its status, and the site doesn’t try to collect personal information or contact any other site; it is only there to help. It is served only over plain HTTP. Then add your own LAN bookmarks.
+- Bookmarks start page on fresh launch and in new tabs. A fresh install has no bookmarks. **Settings › Public Wi-Fi** adds **Wi-Fi Sign-In — http://wifi.makesmart.ai/**, which reaches a Wi-Fi sign-in page. The app contacts it only when you open it, never fetching its icon or checking its status, and the site doesn’t try to collect personal information or contact any other site; it is only there to help. It is served only over plain HTTP. Then add your own LAN bookmarks.
 - Bottom address bar on iPhone and in narrow iPad windows, or a top bar at full width on iPad and Mac (see [iPad and Mac](#ipad-and-mac)). Omitted schemes default to HTTP. Explicit HTTPS and server redirects work normally.
 - Back, Forward, Reload/Stop, swipe navigation, loading state, and retryable errors. A page opened from the bookmark list shows **Done**, and Back returns to the list once the page has no earlier history; a tab opened just for that page closes.
 - Add, edit, delete, and reorder bookmarks, stored on the device. Equivalent URLs cannot be saved twice; adding an existing address opens its bookmark for editing. Network scans never remove saved bookmarks, including ones saved from discovery.
@@ -86,7 +86,7 @@ Open it from the Page Info (ⓘ) sheet, the **Diagnose** button next to **Retry*
 
 ## Settings
 
-Open **Settings** (the gear button on the bookmark screen). It has four groups: **Browsing** (**Open Bookmarks In** and **Restore Tabs on Launch**); **Local Network** (the **Local Network Features** switch, **Clear Discovered Services**, and **Reset Device Names**, which asks for confirmation and forgets custom names, remembered IPs, and looked-up host names but keeps bookmarks); **Privacy** (**Clear Cookies & Website Data** and the bundled offline **Privacy Policy**); and **Help & Support** (the **Using LAN Browser** help page, **Run Browser Check**, **Ask for Help or Report a Problem** on GitHub Issues, and the app version). The browser check renders locally and offers a sample Save to Files download without a LAN server or internet connection.
+Open **Settings** (the gear button on the bookmark screen). It has six groups: **Browsing** (**Open Bookmarks In** and **Restore Tabs on Launch**); **Public Wi-Fi** (**Add Wi-Fi Sign-In Bookmark**, disabled once the bookmark is in your list); **Passwords** (**Offer to Save Passwords**, **AutoFill Saved Passwords**, and **Saved Passwords**); **Local Network** (the **Local Network Features** switch, **Clear Discovered Services**, and **Reset Device Names**, which asks for confirmation and forgets custom names, remembered IPs, and looked-up host names but keeps bookmarks); **Privacy** (**Clear Cookies & Website Data** and the bundled offline **Privacy Policy**); and **Help & Support** (the **Using LAN Browser** help page, **Run Browser Check**, **Ask for Help or Report a Problem** on GitHub Issues, and the app version). The browser check renders locally and offers a sample Save to Files download without a LAN server or internet connection.
 
 ## Building from source
 
@@ -120,7 +120,7 @@ Unsigned builds can’t be installed on an iPhone, iPad or Mac, or uploaded to T
 
 ### If a captive portal does not appear
 
-- Open the **Wi-Fi Sign-In** bookmark. If you skipped the first-launch offer, add it from **Settings › Public Wi-Fi**.
+- Open the **Wi-Fi Sign-In** bookmark. If it isn’t in your list, add it from **Settings › Public Wi-Fi**.
 - Stay on **http://wifi.makesmart.ai/**. Opening an HTTPS site usually produces a certificate warning instead of the login page, and that warning should not be bypassed.
 - Join the Wi-Fi network again, then reload Wi-Fi Sign-In. Some portals only intercept the first plain-HTTP request after association.
 

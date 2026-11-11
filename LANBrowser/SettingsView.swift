@@ -42,7 +42,7 @@ struct SettingsView: View {
                     Button("Add Wi-Fi Sign-In Bookmark", systemImage: "wifi", action: addSignIn)
                         .disabled(signInBookmarked)
                 } header: { Text("Public Wi-Fi") } footer: {
-                    Text(signInBookmarked ? "The Wi-Fi Sign-In bookmark is in your list." : WiFiSignInOffer.summary)
+                    Text(signInBookmarked ? "The Wi-Fi Sign-In bookmark is in your list." : "Public Wi-Fi networks in hotels, cafes and airports show their sign-in page only when a device requests a plain-HTTP address; HTTPS sites can’t display it. This adds http://wifi.makesmart.ai/, a plain-HTTP page that doesn’t try to collect personal information and is only there to help. LAN Browser contacts it only when you open it.")
                 }
 
                 Section {
@@ -128,37 +128,6 @@ struct TrustedNetworkNotice: View {
     }
 }
 
-/// Second step of the first-use sheet, shown right after the trusted-network notice.
-struct WiFiSignInOffer: View {
-    static let summary = "Public Wi-Fi networks in hotels, cafes and airports present their sign-in page only when a device requests a plain HTTP address. HTTPS sites cannot display it. A bookmark to a plain-HTTP page lets you trigger that sign-in on demand."
-    static let details = "Adding it bookmarks http://wifi.makesmart.ai/, a public page that doesn’t try to collect personal information and is only there to help. LAN Browser contacts it only when you open it, never in the background. You can add or remove it at any time."
-
-    let add: () -> Void
-    let skip: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Image(systemName: "wifi").font(.system(size: 44)).foregroundStyle(.tint)
-            Text("Public Wi-Fi Sign-In").font(.title.bold())
-            Text("Would you like to add a bookmark for testing plain-HTTP connectivity?").font(.headline)
-            Text(Self.summary).font(.body)
-            Text(Self.details).font(.body).foregroundStyle(.secondary)
-            Spacer()
-            Button(action: add) {
-                Text("Add Bookmark").font(.headline).frame(maxWidth: .infinity).padding(.vertical, 6)
-            }
-            .buttonStyle(.borderedProminent)
-            Button(action: skip) {
-                Text("Not Now").frame(maxWidth: .infinity).padding(.vertical, 6)
-            }
-            Text("You can add it later in Settings.").font(.footnote).foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-        }
-        .padding(24)
-        .interactiveDismissDisabled()
-    }
-}
-
 private struct HelpView: View {
     var body: some View {
         List {
@@ -167,7 +136,7 @@ private struct HelpView: View {
                 Text(TrustedNetworkNotice.details)
             }
             Text("Save home-server addresses and open Wi-Fi sign-in pages. Addresses without a scheme use HTTP. HTTP traffic is not encrypted; use HTTPS when your service supports it.")
-            Text("To reach a public network’s sign-in page, open a plain-HTTP bookmark such as Wi-Fi Sign-In (http://wifi.makesmart.ai/). You can add it at first launch or later from Settings. A portal appears only when that network requires sign-in. LAN Browser contacts it only when you open it, and the page doesn’t try to collect personal information.")
+            Text("To reach a public network’s sign-in page, open a plain-HTTP bookmark such as Wi-Fi Sign-In (http://wifi.makesmart.ai/). Add it from Settings › Public Wi-Fi. A portal appears only when that network requires sign-in. LAN Browser contacts it only when you open it, and the page doesn’t try to collect personal information.")
             Text("For home services, use the same Wi-Fi network as your server and enter its hostname or IP address and port. Devices on your network with self-signed or otherwise untrusted certificates open anyway, marked with a red “!” you can tap to see the certificate; internet sites with invalid certificates are still blocked.")
             Text("Bookmarks open in a new tab unless the current tab is blank; change this in Settings. Touch and hold a bookmark to open it the other way. Tap the tabs button to switch tabs, or touch and hold it for New Tab and Close Tab. Touch and hold the bookmarks button to bookmark the current page.")
             Text("Equivalent bookmark URLs can be saved only once. Adding an existing address opens its bookmark for editing. Scanning again or clearing discovery results keeps all saved bookmarks. Site icons are fetched directly from the same site when saving or scanning, without a third-party icon service. Cached icons display without new requests; if an icon is unavailable, the network symbol is shown.")

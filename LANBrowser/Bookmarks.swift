@@ -58,7 +58,7 @@ final class BookmarkStore: ObservableObject {
                 errorMessage = "Your bookmarks could not be read. The saved file has been left in place. \(error.localizedDescription)"
             }
         } else {
-            // A fresh install starts empty; the first-use offer adds Wi-Fi Sign-In only if the user agrees.
+            // A fresh install starts empty; Settings › Public Wi-Fi adds Wi-Fi Sign-In on request.
             bookmarks = []
             persist(bookmarks)
         }
