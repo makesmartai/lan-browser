@@ -14,7 +14,13 @@ struct Bookmark: Identifiable, Codable, Equatable {
         self.faviconPNG = faviconPNG
     }
 
-    static let httpForever = Bookmark(title: "HTTP Forever Captive Portal", url: "http://httpforever.com/")
+    static let wifiSignIn = Bookmark(title: "Wi-Fi Sign-In", url: "http://wifi.makesmart.ai/")
+
+    /// The sign-in page is contacted only when someone opens it: no icon fetch and no status check,
+    /// so the site learns nothing until it is actually used.
+    static func isWiFiSignIn(_ address: String) -> Bool {
+        BrowserAddress.bookmarkKey(address) == BrowserAddress.bookmarkKey(wifiSignIn.url)
+    }
 }
 
 @MainActor
@@ -52,7 +58,8 @@ final class BookmarkStore: ObservableObject {
                 errorMessage = "Your bookmarks could not be read. The saved file has been left in place. \(error.localizedDescription)"
             }
         } else {
-            bookmarks = [.httpForever]
+            // A fresh install starts empty; Settings › Public Wi-Fi adds Wi-Fi Sign-In on request.
+            bookmarks = []
             persist(bookmarks)
         }
     }

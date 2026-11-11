@@ -105,6 +105,10 @@ struct BrowserScreen: View {
             .navigationBarTitleDisplayMode((usesTopBar || showsDone) && !tab.showingStartPage ? .inline : .automatic)
             .toolbar(tab.showingStartPage || usesTopBar || showsDone ? .visible : .hidden, for: .navigationBar)
             .toolbar { browserToolbar }
+            // Choosing Custom before its ports were ever reviewed opens Settings › Custom Scan Ports.
+            .onChange(of: network.showingCustomPorts) { _, show in
+                if show && !showingSettings { showingSettings = true }
+            }
         }
         .focusedSceneValue(\.browserActions, browserActions)
         .onChange(of: tab.address, initial: true) { _, value in
@@ -130,11 +134,17 @@ struct BrowserScreen: View {
         .sheet(isPresented: Binding(get: { !noticeAccepted }, set: { _ in })) {
             TrustedNetworkNotice { noticeAccepted = true }
         }
+        // Waits for the bookmark list, so turning the feature on from Settings asks there instead.
+        .firstScanPrompt(network, active: firstScanActive)
         .sheet(isPresented: $editingAddress) {
             AddressEntry(text: $addressInput) { open(addressInput) }
         }
-        .sheet(isPresented: $showingSettings) {
-            SettingsView(session: session, network: network, devices: devices) {
+        .sheet(isPresented: $showingSettings, onDismiss: { network.showingCustomPorts = false }) {
+            SettingsView(
+                session: session, network: network, devices: devices,
+                signInBookmarked: store.existing(for: Bookmark.wifiSignIn.url) != nil,
+                addSignIn: addSignInBookmark
+            ) {
                 showingSettings = false
                 tab.openBrowserCheck()
             }
@@ -258,9 +268,18 @@ struct BrowserScreen: View {
                     }
                 }
                 Section {
-                    if store.bookmarks.isEmpty && network.isEnabled {
-                        Text("No bookmarks yet. Tap + to save a web address, or add one from On This Network below.")
-                            .foregroundStyle(.secondary)
+                    // A row rather than an overlay, so it scrolls with the card and footers and never covers them.
+                    if store.bookmarks.isEmpty {
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: "bookmark").font(.title2).foregroundStyle(.tint).frame(width: 30)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("No Bookmarks Yet").font(.headline)
+                                Text(network.isEnabled ? "Tap + to save a web address, or add one from On This Network below." : "Tap + to save a web address.")
+                                    .font(.subheadline).foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        .accessibilityElement(children: .combine)
                     }
                     ForEach(store.bookmarks) { bookmark in
                         Button {
@@ -270,7 +289,7 @@ struct BrowserScreen: View {
                                 SiteIcon(data: bookmark.faviconPNG)
                                     .frame(width: 30)
                                     .overlay(alignment: .bottomTrailing) {
-                                        if network.isEnabled { StatusDot(state: network.status[bookmark.id]) }
+                                        if network.isEnabled, !Bookmark.isWiFiSignIn(bookmark.url) { StatusDot(state: network.status[bookmark.id]) }
                                     }
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(bookmark.title).font(.headline).foregroundStyle(.primary)
@@ -307,7 +326,7 @@ struct BrowserScreen: View {
                     .onDelete(perform: store.delete)
                     .onMove(perform: store.move)
                 } footer: {
-                    Text("Home services and captive-portal login pages, one tap away. HTTP Forever is plain HTTP, so hotel and cafe Wi-Fi can show their sign-in screen. Swipe right on a bookmark to edit it, or touch and hold for more options.")
+                    Text("Home services and captive-portal login pages, one tap away. A plain-HTTP bookmark such as Wi-Fi Sign-In lets hotel and cafe Wi-Fi show its sign-in screen. Swipe right on a bookmark to edit it, or touch and hold for more options.")
                 }
                 // Below the bookmarks, so arriving results never push saved rows out from under a tap.
                 if network.isEnabled {
@@ -333,11 +352,6 @@ struct BrowserScreen: View {
                 guard network.isEnabled else { return }
                 await network.recheck()
                 if !network.isSearching { choosingScan = true }
-            }
-            .overlay {
-                if store.bookmarks.isEmpty && !network.isEnabled {
-                    ContentUnavailableView("No bookmarks yet", systemImage: "bookmark", description: Text("Tap + to save a web address."))
-                }
             }
     }
 
@@ -493,7 +507,7 @@ struct BrowserScreen: View {
             Image(systemName: tab.address.hasPrefix("https:") ? "lock" : "network")
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
-            TextField("Address · httpforever.com", text: $addressInput)
+            TextField("Address · wifi.makesmart.ai", text: $addressInput)
                 .keyboardType(.URL)
                 .textContentType(.URL)
                 .textInputAutocapitalization(.never)
@@ -574,16 +588,26 @@ struct BrowserScreen: View {
         sheet = .download(export)
     }
 
+    private var firstScanActive: Bool {
+        noticeAccepted && tab.showingStartPage && scenePhase == .active && sheet == nil
+            && !showingSettings && !editingAddress && !showingInfo && !showingTabs
+    }
+
     private func saveBookmark(_ bookmark: Bookmark) -> Bool {
         guard store.save(bookmark) else { return false }
         guard let saved = store.bookmarks.first(where: { $0.id == bookmark.id }), saved.faviconPNG == nil,
-              let url = BrowserAddress.parse(saved.url) else { return true }
+              !Bookmark.isWiFiSignIn(saved.url), let url = BrowserAddress.parse(saved.url) else { return true }
         Task {
             if let png = await FaviconLoader.shared.load(url) {
                 store.updateFavicon(png, id: saved.id, url: saved.url)
             }
         }
         return true
+    }
+
+    private func addSignInBookmark() {
+        guard store.existing(for: Bookmark.wifiSignIn.url) == nil else { return }
+        _ = saveBookmark(.wifiSignIn)
     }
 
     private func newBookmark() {
@@ -653,7 +677,7 @@ private struct AddressEntry: View {
     var body: some View {
         NavigationStack {
             Form {
-                TextField("Address · httpforever.com", text: $text)
+                TextField("Address · wifi.makesmart.ai", text: $text)
                     .keyboardType(.URL)
                     .textContentType(.URL)
                     .textInputAutocapitalization(.never)

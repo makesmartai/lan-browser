@@ -56,7 +56,13 @@ struct CoreChecks {
         defer { try? FileManager.default.removeItem(at: directory) }
         let file = directory.appending(path: "bookmarks.json")
         let store = BookmarkStore(fileURL: file)
-        check(store.bookmarks.count == 1 && store.bookmarks[0] == .httpForever, "Seed HTTP Forever on first launch")
+        check(store.bookmarks.isEmpty, "Fresh install has no bookmarks")
+        check(BookmarkStore(fileURL: file).bookmarks.isEmpty, "Fresh install stays empty after relaunch")
+        check(BrowserAddress.bookmarkKey(Bookmark.wifiSignIn.url) == BrowserAddress.bookmarkKey("HTTP://WIFI.makesmart.ai:80"), "Wi-Fi Sign-In is a plain-HTTP bookmark")
+        check(Bookmark.isWiFiSignIn("wifi.makesmart.ai") && Bookmark.isWiFiSignIn("HTTP://WIFI.makesmart.ai:80/"), "Wi-Fi Sign-In matches equivalent addresses")
+        check(!Bookmark.isWiFiSignIn("https://wifi.makesmart.ai/") && !Bookmark.isWiFiSignIn("http://wifi.makesmart.ai/other"), "Wi-Fi Sign-In match stays exact")
+        check(store.save(.wifiSignIn), "Settings adds Wi-Fi Sign-In")
+        check(store.existing(for: "http://wifi.makesmart.ai") != nil && !store.save(Bookmark(title: "Again", url: "http://wifi.makesmart.ai/")), "Wi-Fi Sign-In is not added twice")
         let custom = Bookmark(title: "Router", url: "http://192.168.1.1/")
         check(store.save(custom), "Save bookmark")
         var edited = custom
@@ -97,7 +103,9 @@ struct CoreChecks {
         let duplicate = Bookmark(title: "Second", url: "http://nas.local/")
         check(!uniqueStore.save(duplicate), "Reject duplicate add")
         check(uniqueStore.existing(for: duplicate.url) == firstBookmark, "Find existing bookmark for Add UI")
-        var colliding = uniqueStore.bookmarks[0]
+        let other = Bookmark(title: "Other", url: "http://other.local/")
+        check(uniqueStore.save(other), "Save second bookmark")
+        var colliding = other
         colliding.url = duplicate.url
         check(!uniqueStore.save(colliding), "Reject colliding edit")
         check(BookmarkStore(fileURL: uniqueFile).bookmarks == uniqueStore.bookmarks, "Rejected writes leave disk unchanged")
@@ -110,9 +118,9 @@ struct CoreChecks {
         movedBookmark.url = "http://elsewhere.local/"
         check(uniqueStore.save(movedBookmark), "Change bookmark address")
         check(uniqueStore.existing(for: movedBookmark.url)?.faviconPNG == nil, "Changing URL clears old icon")
-        uniqueStore.delete(at: IndexSet(integer: 1))
+        uniqueStore.delete(at: IndexSet(integer: 0))
         uniqueStore.updateFavicon(Data([9]), id: movedBookmark.id, url: movedBookmark.url)
-        check(uniqueStore.bookmarks.count == 1, "Late icon cannot resurrect deleted bookmark")
+        check(uniqueStore.bookmarks == [other], "Late icon cannot resurrect deleted bookmark")
         check(!corrupt.save(custom), "Corrupt bookmark files cannot be overwritten by a later save")
         let preservedAgain = try String(contentsOf: file, encoding: .utf8)
         check(preservedAgain == preserved, "Corrupt file preserved after save attempt")
@@ -227,7 +235,7 @@ struct CoreChecks {
         for host in ["nas.local", "NAS.LOCAL", "nas", "localhost", "10.0.0.2", "172.20.1.1", "192.168.1.1", "169.254.3.4", "127.0.0.1", "fe80::1", "fd00::1", "::1"] {
             check(ServiceCatalog.isLocalHost(host), "Local host: \(host)")
         }
-        for host in ["httpforever.com", "8.8.8.8", "172.32.0.1", "192.169.1.1", "2001:db8::1"] {
+        for host in ["wifi.makesmart.ai", "8.8.8.8", "172.32.0.1", "192.169.1.1", "2001:db8::1"] {
             check(!ServiceCatalog.isLocalHost(host), "Internet host: \(host)")
         }
 
@@ -262,7 +270,7 @@ struct CoreChecks {
         check(DeviceStore.isIPAddress("10.0.2.2") && DeviceStore.isIPAddress("fd00::1") && !DeviceStore.isIPAddress("studio.local") && !DeviceStore.isIPAddress("1.2.3.999"), "Detect IP addresses")
         check(DeviceStore.defaultName(for: "studio.local") == "studio", "Default name drops .local")
         check(DeviceStore.defaultName(for: "10.0.0.232", hostname: "brothera1b2c3d4.localdomain.") == "brothera1b2c3d4", "IP uses reverse-lookup name")
-        check(DeviceStore.defaultName(for: "10.0.0.232") == "10.0.0.232" && DeviceStore.defaultName(for: "httpforever.com") == "httpforever.com", "Default name falls back to the host")
+        check(DeviceStore.defaultName(for: "10.0.0.232") == "10.0.0.232" && DeviceStore.defaultName(for: "wifi.makesmart.ai") == "wifi.makesmart.ai", "Default name falls back to the host")
         let devicesFile = directory.appending(path: "devices.json")
         let devices = DeviceStore(fileURL: devicesFile)
         let studio = URL(string: "http://studio.local:8888/")!
@@ -318,9 +326,32 @@ struct CoreChecks {
         cache.clear()
         check(cache.load() == nil, "Clear Results deletes the cache")
 
-        check(PortScanPreset.off.ports.isEmpty && PortScanPreset.standard.ports == [80, 443], "Off and Standard port lists")
-        check(PortScanPreset.scanChoices.map(\.choiceLabel) == ["Common Web Apps (22 ports)", "Standard Web (Ports 80 and 443)", "Bonjour Only"], "Scan prompt offers the three choices, widest first")
-        check(PortScanPreset.common.ports.count == 22 && Set(PortScanPreset.common.ports).count == 22 && PortScanPreset.common.ports.contains(32400), "Common list has 22 distinct ports")
+        let noPorts = PortList()
+        check(PortScanPreset.off.ports(custom: .common).isEmpty && PortScanPreset.standard.ports(custom: .common) == [80, 443], "Off and Standard port lists")
+        check(PortScanPreset.scanChoices(custom: noPorts).map { $0.choiceLabel(custom: noPorts) } == ["Common Web Apps (22 ports)", "Standard Web (Ports 80 and 443)", "Bonjour Only"], "Without custom ports, scan prompts offer the three built-in choices, widest first")
+        let customList = PortList(text: "8000-8100,443")!
+        check(PortScanPreset.scanChoices(custom: customList).map { $0.choiceLabel(custom: customList) } == ["Common Web Apps (22 ports)", "Custom (102 ports)", "Standard Web (Ports 80 and 443)", "Bonjour Only"], "Custom appears after Common Web Apps with its port count")
+        check(PortScanPreset.commonPorts.count == 22 && Set(PortScanPreset.commonPorts).count == 22 && PortScanPreset.commonPorts.contains(32400), "Common list has 22 distinct ports")
+        check(PortScanPreset.custom.ports(custom: customList) == [443] + Array(8000...8100), "Custom scans its own sorted ports")
+        check(PortScanPreset.custom.scannedSummary == "Bonjour + custom ports" && PortScanPreset.common.scannedSummary == "Bonjour + 22 ports" && PortScanPreset.off.scannedSummary == "Bonjour", "Last-scan summaries")
+
+        check(PortRange(text: "8080") == PortRange(8080, 8080) && PortRange(text: " 8000 - 8010 ") == PortRange(8000, 8010), "Parse a port and a spaced range")
+        check(PortRange(text: "8000–8010") == PortRange(8000, 8010) && PortRange(text: "8000 to 8010") == PortRange(8000, 8010), "Ranges accept an en dash or “to”")
+        check(["", "0", "65536", "9000-8000", "80-", "-80", "80-90-100", "http", "8o", "1-2-"].allSatisfy { PortRange(text: $0) == nil }, "Reject invalid ports and ranges")
+        check(PortRange(text: "1-65535")?.count == 65535 && PortRange(8000, 8010)?.label == "8000 – 8010" && PortRange(8000, 8010)?.text == "8000-8010", "Range count, label and saved form")
+        check(PortList.common.ports == PortScanPreset.commonPorts && PortList.common.count == 22, "Custom list starts as the Common Web Apps ports")
+        check(PortList.common.ranges.map(\.text) == ["80-81", "443", "1880", "3000-3001", "5000-5001", "7878", "8000", "8008", "8080-8081", "8096", "8123", "8443", "8888", "8989", "9000", "9090", "9443", "32400"], "Neighboring common ports show as ranges")
+        check(PortList(text: PortList.common.text) == PortList.common && PortList(text: "") == PortList() && PortList(text: "80,nope") == nil, "Saved text round-trips; empty stays empty; bad text is rejected")
+        let merged = PortList([PortRange(8000, 8010)!, PortRange(8005, 8020)!, PortRange(8021, 8021)!, PortRange(80, 80)!])
+        check(merged.ranges.map(\.text) == ["80", "8000-8021"] && merged.count == 23, "Overlapping and adjacent entries combine, sorted")
+        let replaced = merged.adding(PortRange(9000, 9001)!, replacing: PortRange(80, 80)!)
+        check(replaced?.ranges.map(\.text) == ["8000-8021", "9000-9001"], "Editing replaces the original entry")
+        check(merged.removing(PortRange(80, 80)!).ranges.map(\.text) == ["8000-8021"], "Delete removes one entry")
+        check(PortList().adding(PortRange(1, 1024)!)?.count == 1024 && PortList().adding(PortRange(1, 1025)!) == nil, "Custom list allows up to 1,024 ports")
+        check(PortList(text: "1-1024")!.adding(PortRange(500, 600)!)?.count == 1024, "Overlapping additions don’t count twice")
+        check(PortList().problem(adding: "8000-8010") == nil && PortList().problem(adding: "70000")?.hasPrefix("Enter a port") == true, "Explain an invalid entry")
+        check(PortList().problem(adding: "1-2000") == "That would make 2,000 ports. A custom scan can include up to 1,024.", "Explain the port limit")
+        check(PortList(text: "1-1024")!.problem(adding: "2000", replacing: PortRange(1, 1024)!) == nil, "An edit is checked without the entry it replaces")
         let lan = IPv4Range(cidr: "10.0.2.183/22")!
         check(lan.cidr == "10.0.0.0/22" && lan.count == 1022 && lan.description == "10.0.0.1 – 10.0.3.254", "Parse a /22 from any address in it")
         let lanHosts = lan.hosts(excluding: "10.0.2.183")
@@ -328,16 +359,19 @@ struct CoreChecks {
         check(IPv4Range.scanRange(network: "10.0.0.0/22", deviceIP: "10.0.2.183") == lan, "Networks up to 1,024 addresses are scanned whole")
         check(IPv4Range.scanRange(network: "172.16.0.0/16", deviceIP: "172.16.9.40")?.cidr == "172.16.9.0/24", "Large networks fall back to the phone’s /24")
         check(IPv4Range(cidr: "10.0.0.1/32")?.hosts().isEmpty == true && IPv4Range(cidr: "nonsense") == nil && IPv4Range(cidr: "10.0.0.256/24") == nil, "Reject unusable ranges")
-        let plan = PortScanPlan(preset: .common, range: lan, deviceIP: "10.0.2.183")
+        let plan = PortScanPlan(preset: .common, ports: PortScanPreset.commonPorts, range: lan, deviceIP: "10.0.2.183")
         check(plan.addressCount == 1021 && plan.connectionCount == 22462, "Plan counts every selected port on every address")
+        check(plan.worstCaseSeconds == 264 && plan.durationText == "about 5 minutes", "Worst-case time waits out every batch")
+        let widePlan = PortScanPlan(preset: .custom, ports: PortList(text: "1-1024")!.ports, range: lan, deviceIP: plan.deviceIP)
+        check(widePlan.connectionCount == 1_045_504 && widePlan.durationText == "about 205 minutes", "A full custom list shows its long worst case")
         let targets = plan.targets
         check(targets.count == plan.connectionCount && Set(targets.map { ServiceCatalog.endpointKey(host: $0.host, port: $0.port) }).count == targets.count, "Every scan endpoint is checked exactly once")
-        check(lanHosts.allSatisfy { host in Set(targets.filter { $0.host == host }.map(\.port)) == Set(PortScanPreset.common.ports) }, "Every host receives every preset port without a liveness prerequisite")
+        check(lanHosts.allSatisfy { host in Set(targets.filter { $0.host == host }.map(\.port)) == Set(PortScanPreset.commonPorts) }, "Every host receives every preset port without a liveness prerequisite")
         check(targets.contains { $0.host == "10.0.3.46" && $0.port == 8888 }, "A service on 8888 is checked without responses from 80 or 443")
         check(targets.allSatisfy { $0.host != plan.deviceIP && lanHosts.contains($0.host) }, "Targets stay in the confirmed range and skip this device")
-        let standardPlan = PortScanPlan(preset: .standard, range: lan, deviceIP: plan.deviceIP)
+        let standardPlan = PortScanPlan(preset: .standard, ports: PortScanPreset.standardPorts, range: lan, deviceIP: plan.deviceIP)
         check(standardPlan.connectionCount == 2042 && standardPlan.targets.allSatisfy { [80, 443].contains($0.port) }, "Standard scans only its selected ports on every host")
-        check(PortScanPlan(preset: .off, range: lan, deviceIP: plan.deviceIP).targets.isEmpty, "Off has no scan targets")
+        check(PortScanPlan(preset: .off, ports: [], range: lan, deviceIP: plan.deviceIP).targets.isEmpty, "Off has no scan targets")
         check(plan.needsConfirmation(confirmedCount: nil) && !plan.needsConfirmation(confirmedCount: 1021) && !plan.needsConfirmation(confirmedCount: 4000) && plan.needsConfirmation(confirmedCount: 253), "Confirm again only for a larger network")
         check(PortScan.prefersHTTPS(port: 9443) && !PortScan.prefersHTTPS(port: 9000), "HTTPS-first ports")
         check(DiagnosticsText.htmlTitle(in: "HTTP/1.1 200 OK\r\n\r\n<html><head><TITLE lang=en>\n  Portainer &amp; Co\n</TITLE>") == "Portainer & Co", "Page title, any case, entities decoded")

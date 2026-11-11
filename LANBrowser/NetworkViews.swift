@@ -158,7 +158,7 @@ struct DiscoveredSection: View {
             }
         } else if let lastScan = network.lastScan {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Scanned \(lastScan.formatted(.relative(presentation: .named))) · \(lastScan.formatted(date: .omitted, time: .shortened)) · \(network.lastScanPorts.map { "Bonjour + \($0.summary.lowercased())" } ?? "Bonjour")")
+                Text("Scanned \(lastScan.formatted(.relative(presentation: .named))) · \(lastScan.formatted(date: .omitted, time: .shortened)) · \((network.lastScanPorts ?? .off).scannedSummary)")
                     .font(.caption).foregroundStyle(.secondary)
                 if network.networkChanged {
                     Label("You’ve changed networks since this scan. Scan again to update.", systemImage: "exclamationmark.triangle")
@@ -187,11 +187,212 @@ struct ScanChoiceDialog: ViewModifier {
 
     func body(content: Content) -> some View {
         content.confirmationDialog("Scan Again", isPresented: $isPresented, titleVisibility: .visible) {
-            ForEach(PortScanPreset.scanChoices) { preset in
-                Button(preset.choiceLabel) { network.startChosenScan(preset) }
+            ForEach(PortScanPreset.scanChoices(custom: network.customPorts)) { preset in
+                Button(network.choiceLabel(preset)) { network.startChosenScan(preset) }
             }
         } message: {
             Text("Choose what this scan looks for.")
+        }
+    }
+}
+
+/// Asked once Local Network Features is turned on, in place of scanning automatically.
+struct FirstScanSheet: View {
+    @ObservedObject var network: LocalNetwork
+    /// The chosen scan, or nil for No Scan; it starts once the sheet has closed.
+    let choose: (PortScanPreset?) -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Image(systemName: "antenna.radiowaves.left.and.right").font(.system(size: 44)).foregroundStyle(.tint)
+                Text("Scan This Network?").font(.title.bold())
+                Text("LAN Browser can look for web apps on this network now. Bonjour finds devices that announce themselves. A port scan also checks every address on this network for web pages, which can take several minutes.")
+                ForEach(PortScanPreset.scanChoices(custom: network.customPorts)) { preset in
+                    Button { choose(preset) } label: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(preset == .off ? "Bonjour Only" : preset.title).font(.headline)
+                            Text(detail(preset)).font(.subheadline).foregroundStyle(.secondary)
+                        }
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.bordered)
+                }
+                Button { choose(nil) } label: {
+                    Text("No Scan").frame(maxWidth: .infinity).padding(.vertical, 6)
+                }
+                Text("You can scan later from the circular arrow on On This Network. Change the Custom scan’s ports in Settings.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            .padding(24)
+        }
+        .interactiveDismissDisabled()
+    }
+
+    private func detail(_ preset: PortScanPreset) -> String {
+        guard preset != .off else { return "Devices that announce themselves. The quickest scan." }
+        if preset == .custom && !network.customPortsVisited { return "Choose your own ports in Settings first. Nothing is scanned yet." }
+        let summary = preset.summary(custom: network.customPorts)
+        guard let plan = network.plan(for: preset) else { return summary }
+        return "\(summary) on \(plan.addressCount.formatted()) addresses · up to \(plan.durationText)"
+    }
+}
+
+/// Presents the first-scan question while `active`; the sheet can only be closed by answering it.
+/// The answer is applied after the sheet finishes closing, so starting a scan doesn’t stall the animation.
+private struct FirstScanPrompt: ViewModifier {
+    @ObservedObject var network: LocalNetwork
+    let active: Bool
+    @ViewState private var answer: PortScanPreset??
+
+    func body(content: Content) -> some View {
+        content.sheet(isPresented: Binding(get: { network.askingFirstScan && active && answer == nil }, set: { _ in }), onDismiss: {
+            // Also called when the sheet is hidden for another screen; then the question stays open.
+            guard let choice = answer else { return }
+            answer = nil
+            network.answerFirstScan(choice)
+        }) {
+            FirstScanSheet(network: network) { answer = .some($0) }
+        }
+    }
+}
+
+extension View {
+    func firstScanPrompt(_ network: LocalNetwork, active: Bool = true) -> some View {
+        modifier(FirstScanPrompt(network: network, active: active))
+    }
+}
+
+/// Settings editor for the Custom scan: one row per port or range, combined as they’re added.
+struct CustomPortsView: View {
+    @ObservedObject var network: LocalNetwork
+    @ViewState private var entry = ""
+    @ViewState private var problem: String?
+    @ViewState private var editing: PortRange?
+    @ViewState private var editText = ""
+    @ViewState private var confirmingReset = false
+    @ViewState private var confirmingRemoveAll = false
+
+    private var list: PortList { network.customPorts }
+
+    var body: some View {
+        List {
+            Section {
+                HStack {
+                    TextField("Port or range, such as 8000-8010", text: $entry)
+                        .keyboardType(.numbersAndPunctuation)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .submitLabel(.done)
+                        .onSubmit(add)
+                    Button("Add", action: add)
+                        .buttonStyle(.borderless)
+                        .disabled(entry.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                .onChange(of: entry) { _, _ in problem = nil }
+            } header: { Text("Add Ports") } footer: {
+                if let problem {
+                    Text(problem).foregroundStyle(.red)
+                } else {
+                    Text("Enter one port, such as 8080, or a range, such as 8000-8010. Overlapping and neighboring entries are combined.")
+                }
+            }
+
+            Section {
+                if list.isEmpty {
+                    Text("No ports yet. Add one above, or reset to the Common Web Apps ports.").foregroundStyle(.secondary)
+                }
+                ForEach(list.ranges) { range in
+                    Button { edit(range) } label: {
+                        HStack {
+                            Text(range.label).monospacedDigit().foregroundStyle(.primary)
+                            Spacer()
+                            Text(PortList.countText(range.count)).foregroundStyle(.secondary)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .tint(.primary)
+                    .accessibilityHint("Edits this entry")
+                    .contextMenu {
+                        Button("Edit", systemImage: "pencil") { edit(range) }
+                        Button("Delete", systemImage: "trash", role: .destructive) { network.customPorts = list.removing(range) }
+                    }
+                }
+                .onDelete { offsets in
+                    var updated = list
+                    for range in offsets.map({ list.ranges[$0] }) { updated = updated.removing(range) }
+                    network.customPorts = updated
+                }
+            } header: { Text("Ports") } footer: { Text(totalText) }
+        }
+        .navigationTitle("Custom Scan Ports")
+        .onAppear { network.markCustomPortsVisited() }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button("Reset to Common Web Apps", systemImage: "arrow.counterclockwise") { confirmingReset = true }
+                    Button("Remove All Ports", systemImage: "trash", role: .destructive) { confirmingRemoveAll = true }
+                        .disabled(list.isEmpty)
+                } label: {
+                    Label("More", systemImage: "ellipsis.circle")
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) { EditButton().disabled(list.isEmpty) }
+        }
+        .alert("Edit Ports", isPresented: Binding(get: { editing != nil }, set: { if !$0 { editing = nil } }), presenting: editing) { range in
+            TextField("8000-8010", text: $editText)
+                .keyboardType(.numbersAndPunctuation)
+            Button("Save") { save(range) }
+            Button("Delete", role: .destructive) { network.customPorts = list.removing(range) }
+            Button("Cancel", role: .cancel) {}
+        } message: { range in
+            Text("Change \(range.label) to another port or range.")
+        }
+        .confirmationDialog("Reset to Common Web Apps?", isPresented: $confirmingReset, titleVisibility: .visible) {
+            Button("Reset Ports", role: .destructive) { network.customPorts = .common; problem = nil }
+        } message: {
+            Text("Your custom list is replaced with the \(PortScanPreset.commonPorts.count) Common Web Apps ports.")
+        }
+        .confirmationDialog("Remove all ports?", isPresented: $confirmingRemoveAll, titleVisibility: .visible) {
+            Button("Remove All Ports", role: .destructive) { network.customPorts = PortList(); problem = nil }
+        } message: {
+            Text("Custom is hidden from the scan choices until you add a port.")
+        }
+    }
+
+    private var totalText: String {
+        var text = "\(PortList.countText(list.count)) of \(PortList.limit.formatted())."
+        if let plan = network.plan(for: .custom) {
+            text += " On this network, a Custom scan makes \(plan.connectionCount.formatted()) connections (\(plan.addressCount.formatted()) addresses × \(PortList.countText(plan.ports.count))), which can take up to \(plan.durationText)."
+        }
+        return text + " Choose Custom from the circular arrow on On This Network to run it. Editing ports never starts a scan."
+    }
+
+    private func add() {
+        let text = entry.trimmingCharacters(in: .whitespaces)
+        guard !text.isEmpty else { return }
+        if let message = list.problem(adding: text) {
+            problem = message
+        } else if let range = PortRange(text: text), let updated = list.adding(range) {
+            network.customPorts = updated
+            entry = ""
+        }
+    }
+
+    private func edit(_ range: PortRange) {
+        editText = range.text
+        editing = range
+    }
+
+    private func save(_ range: PortRange) {
+        if let message = list.problem(adding: editText, replacing: range) {
+            problem = message
+        } else if let updated = PortRange(text: editText).flatMap({ list.adding($0, replacing: range) }) {
+            network.customPorts = updated
+            problem = nil
         }
     }
 }
