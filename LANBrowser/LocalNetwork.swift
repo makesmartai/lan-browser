@@ -44,6 +44,10 @@ final class LocalNetwork: ObservableObject {
     @Published var customPorts: PortList {
         didSet { defaults.set(customPorts.text, forKey: PortList.defaultsKey) }
     }
+    /// Until the Custom Scan Ports page has been opened once, choosing Custom opens it instead of scanning.
+    @Published private(set) var customPortsVisited: Bool
+    /// Asks the UI to show Settings › Custom Scan Ports; the navigation binding resets it.
+    @Published var showingCustomPorts = false
 
     struct PortScanProgress: Equatable {
         var phase: String
@@ -97,6 +101,7 @@ final class LocalNetwork: ObservableObject {
         cardDismissed = defaults.bool(forKey: Self.cardKey)
         portScanPreset = PortScanPreset(rawValue: defaults.string(forKey: PortScanPreset.defaultsKey) ?? "") ?? .off
         customPorts = defaults.string(forKey: PortList.defaultsKey).flatMap(PortList.init(text:)) ?? .common
+        customPortsVisited = defaults.bool(forKey: PortList.visitedKey)
         if isEnabled {
             loadCache()
             startMonitoring()
@@ -150,6 +155,10 @@ final class LocalNetwork: ObservableObject {
     /// Starts the scan the user just chose. Choosing a port scan confirms that plan for this network.
     func startChosenScan(_ preset: PortScanPreset) {
         guard isEnabled, !isSearching else { return }
+        if preset == .custom && !customPortsVisited {
+            showingCustomPorts = true
+            return
+        }
         // Right after the feature is turned on, the path monitor hasn’t reported the Wi-Fi interface yet.
         if preset != .off, pathMonitor != nil, !pathReported {
             queuedChoice = preset
@@ -177,6 +186,17 @@ final class LocalNetwork: ObservableObject {
         scanPorts = plan.preset
         portScanRunning = true
         portScanTask = Task { await runPortScan(plan) }
+    }
+
+    func markCustomPortsVisited() {
+        guard !customPortsVisited else { return }
+        customPortsVisited = true
+        defaults.set(true, forKey: PortList.visitedKey)
+    }
+
+    /// The label for a scan choice; Custom says it opens Settings until its ports have been reviewed.
+    func choiceLabel(_ preset: PortScanPreset) -> String {
+        preset == .custom && !customPortsVisited ? "Set Up Custom Scan…" : preset.choiceLabel(custom: customPorts)
     }
 
     /// The answer to the first-scan question: a scan to start, or nil for no scan.

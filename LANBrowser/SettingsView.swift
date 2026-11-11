@@ -55,9 +55,8 @@ struct SettingsView: View {
 
                 Section {
                     Toggle("Local Network Features", isOn: $network.isEnabled)
-                    NavigationLink {
-                        CustomPortsView(network: network)
-                    } label: {
+                    // Driven by a binding so choosing an unconfigured Custom scan can open this page directly.
+                    NavigationLink(value: "customPorts") {
                         LabeledContent("Custom Scan Ports", value: PortList.countText(network.customPorts.count))
                     }
                     Button("Clear Discovered Services", role: .destructive) { network.clearResults() }
@@ -89,6 +88,8 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $network.showingCustomPorts) { CustomPortsView(network: network) }
+            .navigationDestination(for: String.self) { _ in CustomPortsView(network: network) }
             .firstScanPrompt(network)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
             .confirmationDialog("Clear all cookies and website data?", isPresented: $confirmingClear, titleVisibility: .visible) {

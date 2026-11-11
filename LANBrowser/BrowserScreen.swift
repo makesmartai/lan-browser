@@ -105,6 +105,10 @@ struct BrowserScreen: View {
             .navigationBarTitleDisplayMode((usesTopBar || showsDone) && !tab.showingStartPage ? .inline : .automatic)
             .toolbar(tab.showingStartPage || usesTopBar || showsDone ? .visible : .hidden, for: .navigationBar)
             .toolbar { browserToolbar }
+            // Choosing Custom before its ports were ever reviewed opens Settings › Custom Scan Ports.
+            .onChange(of: network.showingCustomPorts) { _, show in
+                if show && !showingSettings { showingSettings = true }
+            }
         }
         .focusedSceneValue(\.browserActions, browserActions)
         .onChange(of: tab.address, initial: true) { _, value in
@@ -131,12 +135,11 @@ struct BrowserScreen: View {
             TrustedNetworkNotice { noticeAccepted = true }
         }
         // Waits for the bookmark list, so turning the feature on from Settings asks there instead.
-        .firstScanPrompt(network, active: noticeAccepted && tab.showingStartPage && scenePhase == .active && sheet == nil
-                         && !showingSettings && !editingAddress && !showingInfo && !showingTabs)
+        .firstScanPrompt(network, active: firstScanActive)
         .sheet(isPresented: $editingAddress) {
             AddressEntry(text: $addressInput) { open(addressInput) }
         }
-        .sheet(isPresented: $showingSettings) {
+        .sheet(isPresented: $showingSettings, onDismiss: { network.showingCustomPorts = false }) {
             SettingsView(
                 session: session, network: network, devices: devices,
                 signInBookmarked: store.existing(for: Bookmark.wifiSignIn.url) != nil,
@@ -579,6 +582,11 @@ struct BrowserScreen: View {
         guard sheet == nil, let export = session.export else { return }
         exportingDownload = true
         sheet = .download(export)
+    }
+
+    private var firstScanActive: Bool {
+        noticeAccepted && tab.showingStartPage && scenePhase == .active && sheet == nil
+            && !showingSettings && !editingAddress && !showingInfo && !showingTabs
     }
 
     private func saveBookmark(_ bookmark: Bookmark) -> Bool {

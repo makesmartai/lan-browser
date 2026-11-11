@@ -188,7 +188,7 @@ struct ScanChoiceDialog: ViewModifier {
     func body(content: Content) -> some View {
         content.confirmationDialog("Scan Again", isPresented: $isPresented, titleVisibility: .visible) {
             ForEach(PortScanPreset.scanChoices(custom: network.customPorts)) { preset in
-                Button(preset.choiceLabel(custom: network.customPorts)) { network.startChosenScan(preset) }
+                Button(network.choiceLabel(preset)) { network.startChosenScan(preset) }
             }
         } message: {
             Text("Choose what this scan looks for.")
@@ -233,6 +233,7 @@ struct FirstScanSheet: View {
 
     private func detail(_ preset: PortScanPreset) -> String {
         guard preset != .off else { return "Devices that announce themselves. The quickest scan." }
+        if preset == .custom && !network.customPortsVisited { return "Choose your own ports in Settings first. Nothing is scanned yet." }
         let summary = preset.summary(custom: network.customPorts)
         guard let plan = network.plan(for: preset) else { return summary }
         return "\(summary) on \(plan.addressCount.formatted()) addresses · up to \(plan.durationText)"
@@ -312,6 +313,7 @@ struct CustomPortsView: View {
                         }
                         .contentShape(Rectangle())
                     }
+                    .tint(.primary)
                     .accessibilityHint("Edits this entry")
                     .contextMenu {
                         Button("Edit", systemImage: "pencil") { edit(range) }
@@ -326,6 +328,7 @@ struct CustomPortsView: View {
             } header: { Text("Ports") } footer: { Text(totalText) }
         }
         .navigationTitle("Custom Scan Ports")
+        .onAppear { network.markCustomPortsVisited() }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

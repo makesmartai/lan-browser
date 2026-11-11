@@ -98,6 +98,7 @@ struct PortRange: Hashable, Comparable, Identifiable, Sendable {
 struct PortList: Equatable, Sendable {
     static let limit = 1024
     static let defaultsKey = "customScanPorts"
+    static let visitedKey = "customScanPortsVisited"
     static let common = PortList(ports: PortScanPreset.commonPorts)
 
     private(set) var ranges: [PortRange]
