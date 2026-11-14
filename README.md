@@ -20,7 +20,7 @@ LAN Browser is intended exclusively for use on trusted home networks. It isn’t
 - Downloads through WebKit followed by **Save to Files**, with a destination choice for each file. Files are temporarily staged in the app and cleaned up after export or cancellation.
 - System appearance, accessible control labels, and portrait/landscape layouts.
 
-The **Bookmarks** (book) button opens the bookmark list; while it is showing, the **Return to Page** (curved arrow) button returns to the current page. Swipe right on a bookmark or long-press it to edit; the long-press menu also has **Rename Device…**. Swipe left to delete, or tap **Edit** to delete or reorder.
+On iPhone, the bottom bar matches Safari’s compact layout: **Back**, a center pill with the **Menu** (`≡`), tappable **Address**, and **Reload/Stop**, and **Tabs**. The menu holds **Bookmarks** (or **Return to Page**), **Add Bookmark**, **Forward**, **Page Info**, and **Settings**. On iPad, Mac, and unfolded iPhone Duo, **Bookmarks** (book) and **Return to Page** (curved arrow) appear directly in the toolbar. Swipe right on a bookmark or long-press it to edit; the long-press menu also has **Rename Device…**. Swipe left to delete, or tap **Edit** to delete or reorder.
 
 Bookmark and discovery endpoint labels always show the port, including `:80` for HTTP and `:443` for HTTPS. Remembered IP addresses include the same port, and IPv6 addresses use brackets, such as `[fd00::1]:8888`.
 

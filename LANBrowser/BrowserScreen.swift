@@ -60,6 +60,7 @@ struct BrowserScreen: View {
 
     private var tab: BrowserTab { session.selectedTab }
     private var usesTopBar: Bool { BrowserLayout.usesTopBar(sizeClass) }
+    private var usesCompactBottomBar: Bool { BrowserLayout.usesCompactBottomBar(sizeClass) }
 
     var body: some View {
         // On iPhone the browser controls live in the system bottom toolbar so that on the
@@ -74,6 +75,7 @@ struct BrowserScreen: View {
                     responseBanner
                     BrowserWebView(webView: tab.webView)
                         .id(tab.id)
+                        .ignoresSafeArea(.container, edges: usesCompactBottomBar ? .bottom : [])
                 }
                 .opacity(tab.showingStartPage ? 0 : 1)
                 .allowsHitTesting(!tab.showingStartPage && tab.pageError == nil)
@@ -101,6 +103,11 @@ struct BrowserScreen: View {
             }
             .overlay(alignment: .top) { loadingIndicator }
             .overlay(alignment: .bottom) { downloadIndicator }
+            .safeAreaBar(edge: .bottom) {
+                if usesCompactBottomBar {
+                    compactBottomBar
+                }
+            }
             .navigationTitle(listPageTitle ?? "LAN Browser")
             .navigationBarTitleDisplayMode((usesTopBar || showsDone) && !tab.showingStartPage ? .inline : .automatic)
             .toolbar(tab.showingStartPage || usesTopBar || showsDone ? .visible : .hidden, for: .navigationBar)
@@ -433,19 +440,116 @@ struct BrowserScreen: View {
                     Button("Add Bookmark", systemImage: "plus") { newBookmark() }
                 }
             }
-            ToolbarItemGroup(placement: .bottomBar) {
-                backButton
-                forwardButton
-                // A plain button (not an inline text field) so it still works when the
-                // system moves the toolbar into the iPhone Duo's side strip.
-                Button("Address", systemImage: tab.address.hasPrefix("https:") ? "lock" : "network") {
-                    editingAddress = true
+            if !usesCompactBottomBar {
+                ToolbarItemGroup(placement: .bottomBar) {
+                    backButton
+                    forwardButton
+                    // A plain button (not an inline text field) so it still works when the
+                    // system moves the toolbar into the iPhone Duo's side strip.
+                    Button("Address", systemImage: tab.address.hasPrefix("https:") ? "lock" : "network") {
+                        editingAddress = true
+                    }
+                    reloadButton
+                    pageInfoButton
+                    bookmarksMenu
+                    tabsMenu
                 }
-                reloadButton
-                pageInfoButton
-                bookmarksMenu
-                tabsMenu
             }
+        }
+    }
+
+    private var compactBottomBar: some View {
+        GlassEffectContainer(spacing: 10) {
+            HStack(spacing: 10) {
+                backButton
+                    .labelStyle(.iconOnly)
+                    .font(.body.weight(.medium))
+                    .frame(width: 44, height: 44)
+                    .contentShape(Circle())
+                    .glassEffect(.regular.interactive(), in: .circle)
+
+                HStack(spacing: 0) {
+                    pageMenu
+                        .labelStyle(.iconOnly)
+                        .font(.body.weight(.medium))
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+
+                    compactAddressButton
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .contentShape(Rectangle())
+
+                    reloadButton
+                        .labelStyle(.iconOnly)
+                        .font(.body.weight(.medium))
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .padding(.horizontal, 4)
+                .glassEffect(.regular.interactive(), in: .capsule)
+
+                tabsMenu
+                    .labelStyle(.iconOnly)
+                    .font(.body.weight(.medium))
+                    .frame(width: 44, height: 44)
+                    .contentShape(Circle())
+                    .glassEffect(.regular.interactive(), in: .circle)
+            }
+            .tint(.primary)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 2)
+        }
+    }
+
+    private var compactAddressLabel: String {
+        if tab.showingStartPage { return "Enter Address" }
+        return BrowserAddress.displayHost(tab.address) ?? (tab.address.isEmpty ? "Enter Address" : tab.address)
+    }
+
+    private var compactAddressButton: some View {
+        Button {
+            editingAddress = true
+        } label: {
+            HStack(spacing: 5) {
+                if !tab.showingStartPage && tab.certificateIssue != nil {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.red)
+                } else if !tab.showingStartPage && tab.address.hasPrefix("https:") {
+                    Image(systemName: "lock.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                Text(compactAddressLabel)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(tab.showingStartPage ? .secondary : .primary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .accessibilityLabel(tab.showingStartPage ? "Enter Address" : "Address, \(compactAddressLabel)")
+    }
+
+    private var pageMenu: some View {
+        Menu {
+            Button(returnsToPage ? "Return to Page" : "Bookmarks",
+                   systemImage: returnsToPage ? "arrow.uturn.backward" : "book") {
+                editingAddress = false
+                addressFocused = false
+                tab.showingStartPage = !returnsToPage
+            }
+            Button("Add Bookmark", systemImage: "bookmark") { newBookmark() }
+                .disabled(tab.address.isEmpty)
+            Divider()
+            Button("Forward", systemImage: "chevron.right") { tab.forward() }
+                .disabled(!tab.canGoForward || tab.showingStartPage)
+            Button("Page Info", systemImage: "info.circle") { showingInfo = true }
+                .disabled(tab.showingStartPage || tab.address.isEmpty)
+            Divider()
+            Button("Settings", systemImage: "gearshape") { showingSettings = true }
+        } label: {
+            Label("Menu", systemImage: "line.3.horizontal")
         }
     }
 
@@ -627,6 +731,12 @@ enum BrowserLayout {
     /// even an unfolded iPhone Duo, keeps the bottom toolbar so the system can move it into the side strip.
     @MainActor static func usesTopBar(_ sizeClass: UserInterfaceSizeClass?) -> Bool {
         UIDevice.current.userInterfaceIdiom == .pad && sizeClass == .regular
+    }
+
+    /// Compact-width screens (standard iPhones and narrow iPad Slide Over / Split View) use a
+    /// Safari-style compact bottom bar so Tabs and the menu never spill into an overflow button.
+    @MainActor static func usesCompactBottomBar(_ sizeClass: UserInterfaceSizeClass?) -> Bool {
+        !usesTopBar(sizeClass) && sizeClass == .compact
     }
 }
 

@@ -51,6 +51,11 @@ struct CoreChecks {
         for input in ["", "  ", "hello world", "http://", "https://", "ftp://nas.local/", "file:///tmp/a", "http://nas.local:0", "http://nas.local:65536", "http://nas.local:abc", "http://user:password@nas.local/", "nas.local\n:8888"] {
             check(BrowserAddress.parse(input) == nil, "Reject invalid address: \(input)")
         }
+        check(BrowserAddress.displayHost("http://nas.local:80/app") == "nas.local", "Compact host omits HTTP default port")
+        check(BrowserAddress.displayHost("https://nas.local:443/app") == "nas.local", "Compact host omits HTTPS default port")
+        check(BrowserAddress.displayHost("http://nas.local:8080/app") == "nas.local:8080", "Compact host keeps non-default port")
+        check(BrowserAddress.displayHost("http://[fd00::1]:8080/app") == "[fd00::1]:8080", "Compact host brackets IPv6")
+        check(BrowserAddress.displayHost("") == nil, "Empty address has no compact host")
 
         let directory = FileManager.default.temporaryDirectory.appending(path: "LANBrowserChecks-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: directory) }
