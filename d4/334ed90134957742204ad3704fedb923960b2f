@@ -1,0 +1,22 @@
+LANBrowser/NetworkViews.swift
+  s_14af1c63c5d2d5::t_7a3512c47f8521 284,343-355,359-360
+docs/TESTING.md
+  s_14af1c63c5d2d5::t_302cfad1e98de1 61
+  s_14af1c63c5d2d5::t_7a3512c47f8521 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d4334ed90134957742204ad3704fedb923960b2f",
+  "prompts": {},
+  "sessions": {
+    "s_14af1c63c5d2d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ff48a914-83f9-4786-aa1b-4af2d423857c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jesse goodier <31039225+jessegoodier@users.noreply.github.com>"
+    }
+  }
+}
