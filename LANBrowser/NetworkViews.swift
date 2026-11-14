@@ -72,7 +72,7 @@ struct DiscoveredSection: View {
                 scanStatus
                 if network.accessDenied {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Local Network access is off for LAN Browser.").font(.subheadline)
+                        Text("Local Network access is off for LAN Browser, so it can’t scan. Turn it on, then scan again.").font(.subheadline)
                         if HostDevice.current == .mac {
                             Text("Turn it on in System Settings › Privacy & Security › Local Network.")
                                 .font(.footnote).foregroundStyle(.secondary)
@@ -143,7 +143,10 @@ struct DiscoveredSection: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 10) {
                     ProgressView().controlSize(.small)
-                    if let progress = network.portScanProgress {
+                    if network.waitingForAccess {
+                        Text(network.accessDenied ? "Waiting for Local Network access" : "Waiting for permission…")
+                            .font(.subheadline).foregroundStyle(.secondary)
+                    } else if let progress = network.portScanProgress {
                         Text("\(progress.phase) · \(progress.done.formatted()) of \(progress.total.formatted())")
                             .font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
                     } else {
@@ -151,6 +154,10 @@ struct DiscoveredSection: View {
                     }
                     Spacer()
                     Button("Cancel") { network.stopScanning() }.buttonStyle(.borderless)
+                }
+                if network.waitingForAccess && !network.accessDenied {
+                    Text("Choose Allow when LAN Browser asks to find devices on your local network. The scan starts as soon as access is on.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
                 if let progress = network.portScanProgress, progress.total > 0 {
                     ProgressView(value: Double(progress.done), total: Double(progress.total))

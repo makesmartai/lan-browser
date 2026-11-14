@@ -127,6 +127,7 @@ struct BrowserScreen: View {
         }
         .onChange(of: scenePhase) { _, phase in
             network.setForeground(phase != .background)
+            network.setActive(phase == .active)
             if phase != .active { session.passwordOffer = nil }
             if phase == .background { session.saveTabs() }
         }

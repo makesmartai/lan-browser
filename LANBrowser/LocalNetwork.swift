@@ -26,6 +26,9 @@ final class LocalNetwork: ObservableObject {
     @Published private(set) var status: [Bookmark.ID: Reachability] = [:]
     @Published private(set) var serviceStatus: [DiscoveredService.ID: Reachability] = [:]
     @Published private(set) var accessDenied = false
+    /// A chosen scan is held until the system allows Local Network access, so it doesn’t run
+    /// (and fail) while the permission prompt is still on screen.
+    @Published private(set) var waitingForAccess = false
     /// True while a scan runs; rows keep their arrival order until it settles.
     @Published private(set) var isSearching = false
     @Published private(set) var lastScan: Date?
@@ -62,6 +65,8 @@ final class LocalNetwork: ObservableObject {
     private static let maxConcurrentChecks = 4
     private static let settleDelay = Duration.seconds(2)
     private static let maxSearch = Duration.seconds(10)
+    /// Access still blocked this long while the app is active (no prompt on screen) means it’s off.
+    private static let deniedAfter = Duration.seconds(3)
     let devices: DeviceStore
     private let defaults: UserDefaults
     private let cache: DiscoveryCache
@@ -84,6 +89,11 @@ final class LocalNetwork: ObservableObject {
     /// A scan chosen before the first network update, so its range isn’t known yet.
     private var queuedChoice: PortScanPreset?
     private var pathReported = false
+    /// The router, used only to ask the system whether LAN addresses are allowed; nothing is sent to it.
+    private var gateway: NWEndpoint.Host?
+    private var active = true
+    private var accessTask: Task<Void, Never>?
+    private var hostAccess: Bool?
     private var scanned: [DiscoveredService] = []
     private var scanPorts = PortScanPreset.off
     private var portScanTask: Task<Void, Never>?
@@ -127,6 +137,11 @@ final class LocalNetwork: ObservableObject {
             cancelIcons()
             if isSearching { cancelScan() }
         }
+    }
+
+    /// The Local Network prompt makes the app inactive, which tells a waiting scan the prompt is up.
+    func setActive(_ active: Bool) {
+        self.active = active
     }
 
     /// Checks bookmarks that are new or whose address changed since their last check.
@@ -176,7 +191,52 @@ final class LocalNetwork: ObservableObject {
     /// Runs Bonjour discovery and, when the user has confirmed one for this network, the port scan.
     /// Every caller is a scan the user chose; Bonjour Only passes `includePorts: false`.
     func scan(includePorts: Bool = true) {
-        guard isEnabled else { return }
+        guard isEnabled, accessTask == nil else { return }
+        guard let gateway else { begin(includePorts: includePorts); return }
+        isSearching = true
+        accessDenied = false
+        accessTask = Task { [weak self] in
+            guard let self else { return }
+            await waitForAccess(to: gateway)
+            guard !Task.isCancelled else { return }
+            accessTask = nil
+            waitingForAccess = false
+            begin(includePorts: includePorts)
+        }
+    }
+
+    /// Returns once the system allows LAN connections, or when cancelled. If access stays blocked
+    /// while the app is active, the prompt has been answered with Don’t Allow (or was answered before),
+    /// so the list says access is off but keeps waiting in case the user allows it.
+    private func waitForAccess(to host: NWEndpoint.Host) async {
+        hostAccess = nil
+        let updates = NetworkProbe.localNetworkAccess(host: host)
+        let watcher = Task { [weak self] in
+            for await allowed in updates { self?.hostAccess = allowed }
+        }
+        defer { watcher.cancel() }
+        let step = Duration.milliseconds(250)
+        var waited = Duration.zero
+        var blockedWhileActive = Duration.zero
+        while !Task.isCancelled {
+            switch hostAccess {
+            case true?:
+                accessDenied = false
+                return
+            case false?:
+                waitingForAccess = true
+                blockedWhileActive = active ? blockedWhileActive + step : .zero
+                if blockedWhileActive >= Self.deniedAfter { accessDenied = true }
+            case nil:
+                // No answer about the route at all; scan as before rather than hang.
+                if waited >= .seconds(2) { return }
+            }
+            waited += step
+            try? await Task.sleep(for: step)
+        }
+    }
+
+    private func begin(includePorts: Bool) {
         startBrowsing()
         guard includePorts, portScanPreset != .off, let plan = plan(for: portScanPreset) else { return }
         if plan.needsConfirmation(confirmedCount: confirmedCount) {
@@ -240,6 +300,7 @@ final class LocalNetwork: ObservableObject {
 
     func clearResults() {
         cancelIcons()
+        cancelAccessWait()
         if isSearching { stopBrowsers() }
         stopPortScan()
         isSearching = false
@@ -301,14 +362,20 @@ final class LocalNetwork: ObservableObject {
             let parts = path.gateways.map { "\($0)" }.sorted() + [lan.flatMap { NetworkProbe.ipv4Network(of: $0.name) }].compactMap { $0 }
             let fingerprint = parts.isEmpty ? nil : parts.joined(separator: "|")
             let interface = lan?.name
-            Task { @MainActor [weak self] in self?.pathChanged(fingerprint, interface: interface) }
+            let hosts = path.gateways.compactMap { endpoint -> NWEndpoint.Host? in
+                if case .hostPort(let host, _) = endpoint { return host }
+                return nil
+            }
+            let gateway = hosts.first { if case .ipv4 = $0 { true } else { false } } ?? hosts.first
+            Task { @MainActor [weak self] in self?.pathChanged(fingerprint, interface: interface, gateway: gateway) }
         }
         monitor.start(queue: .main)
         pathMonitor = monitor
     }
 
-    private func pathChanged(_ fingerprint: String?, interface: String?) {
+    private func pathChanged(_ fingerprint: String?, interface: String?, gateway: NWEndpoint.Host?) {
         lanInterface = interface
+        self.gateway = gateway
         pathReported = true
         let previous = currentNetwork
         currentNetwork = fingerprint
@@ -382,8 +449,15 @@ final class LocalNetwork: ObservableObject {
         portScanProgress = nil
     }
 
+    private func cancelAccessWait() {
+        accessTask?.cancel()
+        accessTask = nil
+        waitingForAccess = false
+    }
+
     private func cancelScan() {
         cancelIcons()
+        cancelAccessWait()
         stopBrowsers()
         stopPortScan()
         isSearching = false
