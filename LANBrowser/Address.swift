@@ -32,4 +32,15 @@ enum BrowserAddress {
               let url = components.url else { return nil }
         return url
     }
+
+    /// Host (and non-default port) for compact address bars.
+    static func displayHost(_ input: String) -> String? {
+        guard let url = parse(input), let host = url.host, !host.isEmpty else { return nil }
+        let scheme = url.scheme?.lowercased()
+        let bracketed = host.contains(":") ? "[\(host.trimmingCharacters(in: CharacterSet(charactersIn: "[]")))]" : host
+        if let port = url.port, port != (scheme == "https" ? 443 : 80) {
+            return "\(bracketed):\(port)"
+        }
+        return bracketed
+    }
 }
