@@ -58,9 +58,9 @@ Automated checks run with `Scripts/check.sh`; see the [README](../README.md#test
 - Enter `8000-8010` in the field at the top and add it. The list should show one row, 8000-8010. Entering the same range with an en dash (`8000–8010`) or with “to” (`8000 to 8010`) should not add a second row.
 - Add `8005-8020`. The list should show one merged row, 8000-8020, not two overlapping rows.
 - Tap the 8000-8020 row, change it to `8000-8030`, and save. The row should update, and no second row should appear.
-- Delete rows one at a time: swipe one left, use **Edit**, and use the row’s menu.
+- Delete rows one at a time: swipe one left, choose **Edit** from ••• (then **Done** to finish), and use the row’s menu.
 - Enter `1-2000`. A message should explain the 1,024-port limit, and the list should not change. Enter an invalid entry such as `70000` or `9-3`. A clear message should explain it, and the list should not change.
-- Tap ••• and choose **Reset to Common Web Apps**, then confirm the list returns to the 22 ports. Choose **Remove All Ports**. Custom should disappear from the scan sheet and from the circular arrow menu. Reset to bring it back.
+- Tap ••• and choose **Reset to Common Web Apps**, then confirm the list returns to the 22 ports. Choose **Remove All Ports** from ••• and confirm. Custom should disappear from the scan sheet and from the circular arrow menu. Reset to bring it back.
 - On Wi-Fi with Local Network Features on, the footer should show the connection count and worst-case time. Editing ports must not start a scan: On This Network should not change while you edit.
 - Choose **Custom** from the circular arrow. The scan should use the saved ports, and its scan line should read “Bonjour + custom ports”.
 - On a fresh install (or after `defaults delete com.jesse.lanbrowser customScanPortsVisited`), choose **Set Up Custom Scan…** from **Scan This Network?**. Settings should open on Custom Scan Ports, and no scan should start. Go back, choose **Custom** from the circular arrow, and confirm the scan starts directly.

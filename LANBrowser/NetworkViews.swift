@@ -281,6 +281,7 @@ struct CustomPortsView: View {
     @ViewState private var editText = ""
     @ViewState private var confirmingReset = false
     @ViewState private var confirmingRemoveAll = false
+    @ViewState private var editMode = EditMode.inactive
 
     private var list: PortList { network.customPorts }
 
@@ -339,16 +340,24 @@ struct CustomPortsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Button("Reset to Common Web Apps", systemImage: "arrow.counterclockwise") { confirmingReset = true }
-                    Button("Remove All Ports", systemImage: "trash", role: .destructive) { confirmingRemoveAll = true }
-                        .disabled(list.isEmpty)
-                } label: {
-                    Label("More", systemImage: "ellipsis.circle")
+                if editMode.isEditing {
+                    Button("Done") { withAnimation { editMode = .inactive } }
+                        .fontWeight(.semibold)
+                } else {
+                    Menu {
+                        Button("Edit", systemImage: "pencil") { withAnimation { editMode = .active } }
+                            .disabled(list.isEmpty)
+                        Button("Reset to Common Web Apps", systemImage: "arrow.counterclockwise") { confirmingReset = true }
+                        Button("Remove All Ports", systemImage: "trash", role: .destructive) { confirmingRemoveAll = true }
+                            .disabled(list.isEmpty)
+                    } label: {
+                        Label("More", systemImage: "ellipsis.circle")
+                    }
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) { EditButton().disabled(list.isEmpty) }
         }
+        .environment(\.editMode, $editMode)
+        .onChange(of: list.isEmpty) { _, empty in if empty { editMode = .inactive } }
         .alert("Edit Ports", isPresented: Binding(get: { editing != nil }, set: { if !$0 { editing = nil } }), presenting: editing) { range in
             TextField("8000-8010", text: $editText)
                 .keyboardType(.numbersAndPunctuation)
