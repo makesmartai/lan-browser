@@ -1,0 +1,24 @@
+AGENTS.md
+  h_cca6aa2712613d 20,88
+LANBrowser/Address.swift
+  h_cca6aa2712613d 35-45
+LANBrowser/BrowserScreen.swift
+  h_cca6aa2712613d 63,78,106-110,443-463,465-486,488-490,492-496,498-552,735-740
+LANBrowser/SettingsView.swift
+  h_cca6aa2712613d 148
+README.md
+  h_cca6aa2712613d 23
+Tests/CoreChecks.swift
+  h_cca6aa2712613d 54-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "87aa7f06578a3946ca4dfdc96be0b8c1834c1eef",
+  "prompts": {},
+  "humans": {
+    "h_cca6aa2712613d": {
+      "author": "jesse goodier <31039225+jessegoodier@users.noreply.github.com>"
+    }
+  }
+}
