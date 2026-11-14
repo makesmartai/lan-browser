@@ -268,7 +268,7 @@ final class BrowserSession: NSObject, ObservableObject {
     @discardableResult
     func open(_ input: String, newTab: Bool) -> Bool {
         guard let url = BrowserAddress.parse(input) else {
-            message = "Enter a web address such as httpforever.com or http://192.168.1.20:8080/."
+            message = "Enter a web address such as wifi.makesmart.ai or http://192.168.1.20:8080/."
             return false
         }
         (newTab ? self.newTab() : selectedTab).navigate(to: url)

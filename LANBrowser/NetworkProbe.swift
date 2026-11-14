@@ -51,6 +51,29 @@ enum NetworkProbe {
         return outcome
     }
 
+    /// Reports whether the system lets this app reach `host` on the LAN, updating when the user answers
+    /// the Local Network prompt. A UDP connection evaluates the route without sending anything until
+    /// written to, so this contacts nothing. `false` means not yet allowed: either the prompt is still
+    /// waiting for an answer or access is off.
+    static func localNetworkAccess(host: NWEndpoint.Host) -> AsyncStream<Bool> {
+        AsyncStream { continuation in
+            let connection = NWConnection(host: host, port: 9, using: .udp)
+            connection.pathUpdateHandler = { path in
+                continuation.yield(path.unsatisfiedReason != .localNetworkDenied)
+            }
+            connection.stateUpdateHandler = { state in
+                switch state {
+                case .ready: continuation.yield(true)
+                case .waiting: continuation.yield(connection.currentPath?.unsatisfiedReason != .localNetworkDenied)
+                case .failed, .cancelled: continuation.finish()
+                default: break
+                }
+            }
+            continuation.onTermination = { _ in connection.cancel() }
+            connection.start(queue: queue)
+        }
+    }
+
     /// Sends a GET (some embedded servers reject HEAD) and reads only the first chunk of the reply.
     /// For HTTPS, certificate trust is recorded but not enforced, so an untrusted certificate is
     /// reported instead of hiding the server.
