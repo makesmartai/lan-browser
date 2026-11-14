@@ -46,6 +46,7 @@ Other locations:
 - `Tests/serve_fixture.py` is a manual test server on port 8889, including icon fixtures under `/icons/`.
 - `Scripts/make_icon.swift` renders the app icon (“LAN” in gold on dark gray) to `AppIcon.appiconset/AppIcon.png`. Edit and rerun it rather than editing the PNG by hand.
 - `docs/TESTING.md` lists manual on-device checks.
+- `docs/screenshots/` holds full-resolution simulator PNGs for the README’s clickable screenshot gallery; use descriptive device, fold-state, content and orientation names. Its README records capture details and device coverage.
 - `LICENSE` is MIT.
 - `.github/workflows/`: `ci.yml` (check.sh and an unsigned simulator build), `codeql.yml` (Swift, Actions, Python), `scorecard.yml`, `zizmor.yml` (workflow security audit), `dependency-review.yml`.
 - `Scripts/policy_check.sh` (run by `check.sh`) fails if ATS gains an exception, the privacy manifest declares tracking or collected data, a package dependency appears, or `URLCredential(trust:)` is used outside `BrowserTab` or without the `isLocalHost` check. Changing those guarantees means changing this script and the docs together.
@@ -71,12 +72,12 @@ The simulator sees the Mac’s LAN. The Local Network permission prompt only beh
 
 ### Testing without UI automation
 
-There is no XCUITest target and simulator taps can’t be scripted here, so test by setting state and taking screenshots:
+There is no XCUITest target. When Device tools are available, use `device_list`, `device_open`, and the returned `agent-device` command for app launches, UI actions, settings and screenshots; use `device_screenshot` to inspect the display. Otherwise, test by setting state and taking screenshots:
 - **Simulator state:** write JSON into the app container before launch. Get the folder with `xcrun simctl get_app_container <sim> com.jesse.lanbrowser data`, then use `Library/Application Support/LANBrowser/`:
   - `tabs.json` opens a given URL in the selected tab, which loads on launch.
   - `discovered.json` shows a saved scan.
   - Set preferences with `xcrun simctl spawn <sim> defaults write com.jesse.lanbrowser <key> …`, for example `localNetworkFeatures`, `localNetworkAutoScanned`, `trustedNetworkNoticeAccepted` or `portScanPreset`. `localNetworkAutoScanned` records that the Scan This Network? question was answered. `customScanPorts` holds the Custom list as text, such as `80-81,443,8000-8100`. `customScanPortsVisited` records that Custom Scan Ports has been opened; delete it to make **Set Up Custom Scan…** appear again.
-  - Capture with `xcrun simctl io <sim> screenshot`.
+  - Without Device tools, capture with `xcrun simctl io <sim> screenshot`. With Device tools, use the returned command’s `screenshot` action (`--pixel-density 3` for full-resolution iPhone captures and `--normalize-status-bar` for consistent status bars).
   - Check layout changes on an iPad simulator (top bar) and an iPhone simulator (bottom bar). Leave any simulator that is already booted alone; it may be in use.
 - **Network code** (`LocalNetwork`, `ConnectionDiagnostics`, `NetworkProbe`) also compiles for macOS. Build it with a small `@main` runner under `build/` (gitignored) using the same `swiftc` flags as `Scripts/check.sh`, then run it against the real LAN.
 - **Test servers:** a few lines of Python `http.server` can return a specific status or body, e.g. a blank 404 or a 404 sent as `application/octet-stream`.

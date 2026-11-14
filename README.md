@@ -10,6 +10,61 @@ Plain HTTP is the point. Home servers often have no certificate, and hotel, cafe
 
 LAN Browser is intended exclusively for use on trusted home networks. It isn’t meant for browsing websites that are expected to be secure, such as banking, email or shopping. To reach home devices it loads plain HTTP pages and opens devices even when their certificates aren’t trusted, so when you’re on a network you don’t trust, use Safari. The first launch shows a “For Trusted Home Networks” notice that stays until you tap **I Understand**; the same text is at the top of **Settings › Help & Support › Using LAN Browser**.
 
+## Screenshots
+
+### iPhone 18 Pro
+
+<table>
+  <tr>
+    <th>On This Network</th>
+    <th>Settings</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/screenshots/iphone-18-pro-network.png"><img src="docs/screenshots/iphone-18-pro-network.png" width="240" alt="LAN Browser on iPhone 18 Pro in dark mode, showing discovered home-network services and the compact bottom address bar."></a></td>
+    <td align="center"><a href="docs/screenshots/iphone-18-pro-settings.png"><img src="docs/screenshots/iphone-18-pro-settings.png" width="240" alt="LAN Browser Settings on iPhone 18 Pro, showing tab restoration and optional local-network controls."></a></td>
+  </tr>
+  <tr>
+    <td align="center">iPhone 18 Pro · Dark appearance</td>
+    <td align="center">iPhone 18 Pro · Dark appearance</td>
+  </tr>
+</table>
+
+### iPhone Duo · Closed
+
+<table>
+  <tr>
+    <th>On This Network</th>
+    <th>Camera Login &amp; Browser Menu</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/screenshots/iphone-duo-closed-network.png"><img src="docs/screenshots/iphone-duo-closed-network.png" width="240" alt="LAN Browser on a closed iPhone Duo, showing discovered network services and the compact bottom address bar."></a></td>
+    <td align="center"><a href="docs/screenshots/iphone-duo-closed-camera-menu.png"><img src="docs/screenshots/iphone-duo-closed-camera-menu.png" width="240" alt="An Amcrest camera login page on a closed iPhone Duo with the browser menu open, showing Settings, Page Info, Add Bookmark and Bookmarks."></a></td>
+  </tr>
+</table>
+
+### iPhone Duo · Open
+
+<table>
+  <tr>
+    <th>On This Network · Landscape</th>
+    <th>Printer Web Interface · Landscape</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/screenshots/iphone-duo-open-network-landscape.png"><img src="docs/screenshots/iphone-duo-open-network-landscape.png" width="360" alt="LAN Browser on an open iPhone Duo in landscape, showing discovered network services and the system toolbar along the right edge."></a></td>
+    <td align="center"><a href="docs/screenshots/iphone-duo-open-printer-landscape.png"><img src="docs/screenshots/iphone-duo-open-printer-landscape.png" width="360" alt="A Brother printer’s web interface in LAN Browser on an open iPhone Duo in landscape, showing device status and toner levels."></a></td>
+  </tr>
+  <tr>
+    <th>Page Info · Portrait</th>
+    <th>Custom Scan Ports · Portrait</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/screenshots/iphone-duo-open-page-info-portrait.png"><img src="docs/screenshots/iphone-duo-open-page-info-portrait.png" width="240" alt="Page Info on an open iPhone Duo in portrait, showing HTTP response details, the unencrypted connection notice, and the printer’s host and port."></a></td>
+    <td align="center"><a href="docs/screenshots/iphone-duo-open-custom-scan-ports-portrait.png"><img src="docs/screenshots/iphone-duo-open-custom-scan-ports-portrait.png" width="240" alt="Custom Scan Ports on an open iPhone Duo in portrait, showing the port entry field and saved ports and ranges."></a></td>
+  </tr>
+</table>
+
+Select a screenshot to open the full-resolution image.
+
 ## What is included
 
 - Bookmarks start page on fresh launch and in new tabs. A fresh install has no bookmarks. **Settings › Public Wi-Fi** adds **Wi-Fi Sign-In — http://wifi.makesmart.ai/**, which reaches a Wi-Fi sign-in page. The app contacts it only when you open it, never fetching its icon or checking its status, and the site doesn’t try to collect personal information or contact any other site; it is only there to help. It is served only over plain HTTP. Then add your own LAN bookmarks.
