@@ -1,0 +1,25 @@
+AGENTS.md
+  s_c2a57a01fc3f98::t_1c2c2b6c59c1da 95
+  s_c2a57a01fc3f98::t_9a42e5fc8b763c 7
+README.md
+  s_c2a57a01fc3f98::t_2a8a516fcb0900 114
+  s_c2a57a01fc3f98::t_e9a6315355d6cd 124
+  s_c2a57a01fc3f98::t_cce1fb74ba9ce3 5,7,9,11,68,70-79,83,85,98,100,104,106,108,110,112,116,120,122,126,128-133,137-141,147-150,160,164-165,168-172,176-177,185,189,193,197
+  s_c2a57a01fc3f98::t_10b39fea9853ac 118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5118931c0fb59d70c74b2b8b37d2a4466183bd6e",
+  "prompts": {},
+  "sessions": {
+    "s_c2a57a01fc3f98": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-ef91381d-71be-4ec8-b9cc-892df4e4c988",
+        "model": "unknown"
+      },
+      "human_author": "jesse goodier <31039225+jessegoodier@users.noreply.github.com>"
+    }
+  }
+}
