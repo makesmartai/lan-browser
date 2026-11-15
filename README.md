@@ -2,13 +2,13 @@
 
 [![CI](https://github.com/jessegoodier/lan-browser/actions/workflows/ci.yml/badge.svg)](https://github.com/jessegoodier/lan-browser/actions/workflows/ci.yml) [![CodeQL](https://github.com/jessegoodier/lan-browser/actions/workflows/codeql.yml/badge.svg)](https://github.com/jessegoodier/lan-browser/actions/workflows/codeql.yml) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/jessegoodier/lan-browser/badge)](https://scorecard.dev/viewer/?uri=github.com/jessegoodier/lan-browser) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A small iPhone and iPad browser with tabs for home services and captive-portal Wi-Fi. Built with SwiftUI and WebKit, it requires iOS or iPadOS 26.0 or later and has no dependencies. The iPad app also runs on Apple silicon Macs with macOS 26 or later.
+A small iPhone and iPad browser with tabs for home services and captive-portal Wi-Fi. It requires iOS or iPadOS 26.0 or later. The same iPad app runs on Apple silicon Macs with macOS 26 or later, and that build is what the Mac App Store lists. Intel Macs cannot run it. It is built with SwiftUI and WebKit and has no dependencies.
 
-LAN Browser is free and will never have paid features, subscriptions, or ads. It’s built for the community of home-networking enthusiasts who run their own servers, routers and smart-home devices.
+LAN Browser is free and will never have paid features, subscriptions, or ads.
 
-Plain HTTP is the point. Home servers often have no certificate, and hotel, cafe, train, and airport networks can only show their sign-in page by intercepting an HTTP request. HTTPS sites turn that interception into a certificate warning. [wifi.makesmart.ai](http://wifi.makesmart.ai/) is a plain-HTTP page for that captive-portal case.
+Plain HTTP is intentional. Home servers often have no certificate, and hotel, cafe, train, and airport networks show a sign-in page by intercepting an HTTP request. [wifi.makesmart.ai](http://wifi.makesmart.ai/) is a plain-HTTP page for that case. Add it from **Settings › Public Wi-Fi** as **Wi-Fi Sign-In**. The app contacts that site only when you open it.
 
-LAN Browser is intended exclusively for use on trusted home networks. It isn’t meant for browsing websites that are expected to be secure, such as banking, email or shopping. To reach home devices it loads plain HTTP pages and opens devices even when their certificates aren’t trusted, so when you’re on a network you don’t trust, use Safari. The first launch shows a “For Trusted Home Networks” notice that stays until you tap **I Understand**; the same text is at the top of **Settings › Help & Support › Using LAN Browser**.
+LAN Browser is for trusted home networks. It isn’t meant for banking, email, shopping, or other sites you expect to be secure. It loads plain HTTP, and it opens devices on your network even when their certificates aren’t trusted. On a network you don’t trust, use Safari. The first launch shows **For Trusted Home Networks** until you tap **I Understand**. The same text is at the top of **Settings › Help & Support › Using LAN Browser**.
 
 ## Screenshots
 
@@ -65,29 +65,24 @@ LAN Browser is intended exclusively for use on trusted home networks. It isn’t
 
 Select a screenshot to open the full-resolution image.
 
-## What is included
+## What you can do
 
-- Bookmarks start page on fresh launch and in new tabs. A fresh install has no bookmarks. **Settings › Public Wi-Fi** adds **Wi-Fi Sign-In — http://wifi.makesmart.ai/**, which reaches a Wi-Fi sign-in page. The app contacts it only when you open it, never fetching its icon or checking its status, and the site doesn’t try to collect personal information or contact any other site; it is only there to help. It is served only over plain HTTP. Then add your own LAN bookmarks.
-- Bottom address bar on iPhone and in narrow iPad windows, or a top bar at full width on iPad and Mac (see [iPad and Mac](#ipad-and-mac)). Omitted schemes default to HTTP. Explicit HTTPS and server redirects work normally.
-- Back, Forward, Reload/Stop, swipe navigation, loading state, and retryable errors. A page opened from the bookmark list shows **Done**, and Back returns to the list once the page has no earlier history; a tab opened just for that page closes.
-- Add, edit, delete, and reorder bookmarks, stored on the device. Equivalent URLs cannot be saved twice; adding an existing address opens its bookmark for editing. Network scans never remove saved bookmarks, including ones saved from discovery.
-- Persistent website cookies and storage. No browsing-history database, apart from the open tabs saved for Restore Tabs on Launch.
-- Downloads through WebKit followed by **Save to Files**, with a destination choice for each file. Files are temporarily staged in the app and cleaned up after export or cancellation.
-- System appearance, accessible control labels, and portrait/landscape layouts.
-
-On iPhone, the bottom bar matches Safari’s compact layout: **Back**, a center pill with the **Menu** (`≡`), tappable **Address**, and **Reload/Stop**, and **Tabs**. The menu holds **Bookmarks** (or **Return to Page**), **Add Bookmark**, **Forward**, **Page Info**, and **Settings**. On iPad, Mac, and unfolded iPhone Duo, **Bookmarks** (book) and **Return to Page** (curved arrow) appear directly in the toolbar. Swipe right on a bookmark or long-press it to edit; the long-press menu also has **Rename Device…**. Swipe left to delete, or tap **Edit** to delete or reorder.
-
-Bookmark and discovery endpoint labels always show the port, including `:80` for HTTP and `:443` for HTTPS. Remembered IP addresses include the same port, and IPv6 addresses use brackets, such as `[fd00::1]:8888`.
-
-Saving a bookmark can contact that site directly to fetch its icon (never for the Wi-Fi Sign-In bookmark), even with **Local Network Features** off, and may trigger Local Network permission for a home service. Enabled network scans also fetch site icons. Icon requests stay on the same scheme, host and port, send no browser cookies or saved passwords, and use normal HTTPS certificate validation. No third-party icon service is used. Icons are saved on the device and lists display them without making icon requests. Missing, unsupported or untrusted icons use the network symbol. Existing bookmarks get icons when saved again.
-
-Existing duplicate bookmarks are merged on upgrade, keeping the first entry’s title and position. The original JSON file is backed up beside `bookmarks.json` as `bookmarks-before-deduplication-<UUID>.json` before any copies are removed. Unsaved discoveries are still replaced by each scan; saved bookmarks are kept.
+- A fresh install has no bookmarks. The start page and new tabs show the bookmark list. **Settings › Public Wi-Fi** adds **Wi-Fi Sign-In**.
+- The address bar sits at the bottom on iPhone and in a narrow window, and at the top on a full-width iPad or Mac. An address without a scheme uses HTTP. Explicit HTTPS and redirects work.
+- Back, Forward, Reload, Stop, and swipe navigation. A page opened from the list shows **Done**. Back returns to the list when that page has no earlier history, and a tab opened only for that page closes.
+- Add, edit, delete, and reorder bookmarks on the device. Saving an address you already have opens it for editing. Scans never remove saved bookmarks.
+- Website cookies and storage persist. Open tabs can be restored at launch. There is no separate browsing-history list.
+- Downloads go through **Save to Files**. Keep the app open until the save finishes.
+- **Offer to Save Passwords** and **AutoFill Saved Passwords** are on by default. Passwords stay in this device’s Keychain, are available only while it is unlocked, and are not synced to iCloud or copied to another device. Delete them in **Settings › Saved Passwords** before deleting the app; Keychain entries can remain after the app is removed. Saving a password does not encrypt HTTP. Embedded sign-in frames, HTTP login dialogs, and some custom forms are skipped.
+- On iPhone, the bottom bar has **Back**, a pill with **Menu**, the address, and **Reload/Stop**, then **Tabs**. The menu holds Bookmarks, Add Bookmark, Forward, Page Info, and Settings. On iPad, Mac, and an unfolded iPhone Duo, Bookmarks and Return to Page are in the toolbar. Swipe right or long-press a bookmark to edit. Long-press also has **Rename Device…**. Swipe left to delete.
+- Rows show the port, including `:80` and `:443`. IPv6 addresses are shown in brackets, such as `[fd00::1]:8888`.
+- Saving a bookmark can fetch its icon from that site, which may ask for Local Network permission even with **Local Network Features** off. **Wi-Fi Sign-In** is never fetched or status-checked. Icon requests stay on that site and send no cookies or saved passwords.
 
 ## iPad and Mac
 
-On iPad, and on a Mac, a window at full width shows a Safari-style top bar instead of the bottom toolbar. Back and Forward are on the left, the address field is in the middle, and Reload, Page Info, Bookmarks and Tabs are on the right. In Split View, Slide Over and other narrow windows, the bottom toolbar and address sheet return, as on iPhone.
+A full-width window on iPad or Mac uses a top bar: Back and Forward, the address field, then Reload, Page Info, Bookmarks, and Tabs. A narrow window uses the bottom bar.
 
-With a hardware keyboard, these shortcuts work on iPad and on a Mac:
+With a hardware keyboard, on iPad and on a Mac:
 
 - **⌘L** Open Location
 - **⌘T** New Tab
@@ -100,59 +95,59 @@ With a hardware keyboard, these shortcuts work on iPad and on a Mac:
 - **⌘⇧\\** Show All Tabs
 - **⌘,** Settings
 
-The iPad app runs on Apple silicon Macs as **My Mac (Designed for iPad)**. Intel Macs are not supported, and there is no separate Mac app.
+On a Mac, Local Network access is in **System Settings › Privacy & Security › Local Network**. The app has no **Open Settings** button there. A Mac has no pull-down gesture, so refresh On This Network with the circular arrow on that row.
 
-- Local Network access is turned on in **System Settings › Privacy & Security › Local Network**. The app has no **Open Settings** button for it on a Mac.
-- A Mac has no pull down gesture. Use the circular arrow on the On This Network row instead.
+In Xcode, run it with **My Mac (Designed for iPad)**.
 
 ## Tabs
 
-Tabs work much like Safari’s. A new tab opens on the bookmark list. Tapping a bookmark or an On This Network row opens it in a new tab, or fills the current tab if that tab is blank. The default is set in **Settings › Open Bookmarks In** (New Tab or Current Tab). Long-press a bookmark for the other choice, **Open in New Tab** or **Open in Current Tab**. Links that open a new window (`target="_blank"` or `window.open`) open a new tab.
+A new tab opens on the bookmark list. A bookmark or an On This Network row opens in a new tab, or fills the current tab when that tab is blank. Change the default in **Settings › Open Bookmarks In**. Long-press a bookmark for the other choice. Links that ask for a new window open a new tab.
 
-The **Tabs** button opens the tab switcher: a grid of page thumbnails with ✕ to close a tab, **New Tab**, and **Done**. Long-press the Tabs button for **New Tab** and **Close Tab**. Closing the last tab leaves one blank tab.
+**Tabs** opens a grid of page thumbnails, with ✕ to close one, **New Tab**, and **Done**. Long-press the Tabs button for **New Tab** and **Close Tab**. Closing the last tab leaves one blank tab.
 
-With **Restore Tabs on Launch** on (the default), open tabs are saved on the device in `tabs.json` in Application Support, with each tab’s address, title, and Back/Forward history, and restored at launch. A restored tab loads only when you switch to it. Turning the setting off deletes the file, and so does **Clear Cookies & Website Data**. Saved tabs are never sent anywhere.
+**Restore Tabs on Launch** is on by default and saves open tabs on the device. A restored tab loads when you switch to it. Turning the setting off, or **Clear Cookies & Website Data**, deletes the saved tabs.
 
-## Local network features
+## Finding devices on your network
 
-Both features are optional and off until you turn on **Local Network Features**. Use the card at the top of the bookmark list (“Find devices on this network”) or the switch in **Settings**. Turning it on triggers the Local Network permission prompt, then asks **Scan This Network?** when no scan is saved. Turning it on runs nothing by itself; a scan starts only after you choose one. **No Scan** runs nothing. While the switch is off, the app does not browse the network.
+**Local Network Features** is off until you turn it on, from the card on the bookmark list or from Settings. Turning it on asks **Scan This Network?** when nothing is saved. **No Scan** runs nothing. Later, a scan starts only when you ask: the circular arrow on On This Network, or a pull down on iPhone and iPad.
 
-If Local Network access isn’t allowed yet when you choose a scan, the On This Network row shows “Waiting for permission…” and the scan starts as soon as you choose Allow. To learn whether access is allowed, the app opens a UDP connection to your router’s address that sends no data; the system only decides whether that route is permitted. This check runs only as part of a scan you choose. If access stays off for about three seconds while the app is open, the row says Local Network access is off for LAN Browser and offers **Open Settings** (on a Mac, it gives the System Settings path). **Cancel** stops the wait, and leaving the app cancels a waiting scan.
+The choices are **Common Web Apps** (22 ports), **Custom**, **Standard Web** (ports 80 and 443), and **Bonjour Only**. **Custom** uses the ports in **Settings › Local Network › Custom Scan Ports**. Until you have opened that page once, the choice reads **Set Up Custom Scan…** and opens the page without scanning. A port-scan choice shows how many ports and addresses it will check and how long it could take, then starts after the sheet closes. It checks every selected port on every address in this device’s own network. A network of more than 1,024 addresses is limited to the 254 addresses around the device. A large scan can take several minutes. **Cancel** keeps the previous results.
 
-- **On This Network** is a list, below your bookmarks, of web apps advertised with Bonjour (mDNS) on your network. Web apps you’ve already bookmarked are left out. A match needs the same port and the same host name or IP, so a printer saved as `10.0.0.232` doesn’t appear again as `brotherA1B2C3D4.local`, while a second app on another port of a bookmarked device is still listed. Tapping **+** moves an app out of this list and into your bookmarks. **Scan This Network?** lists **Common Web Apps** (22 ports), **Custom** (only when your custom list has ports; until you have opened Custom Scan Ports once, it reads **Set Up Custom Scan…** and opens that page without scanning), **Standard Web** (ports 80 and 443), **Bonjour Only**, and **No Scan**. Each port-scan choice shows its port count, address count and worst-case time. The chosen scan starts after the sheet closes. Afterward a scan runs only when you ask: the circular arrow on the On This Network row, or a pull down on the bookmark list (on a Mac, use the circular arrow). Both ask with the same choices, except **No Scan**. A scan stops on its own once results settle (about two seconds with nothing new, and at most about ten seconds). While it runs, new rows are added at the end so nothing moves under your finger; when it finishes, the list is sorted by name. The last scan is saved on the device and shown until you scan again or clear it. The section shows when it was scanned. If you have moved to a different network since, a note says so, but the app does not rescan by itself. Clear the list with **Clear Discovered Services** in Settings, or swipe left on a row (or long-press it and choose **Remove from List**) to remove one row until the next scan. Each row has a status dot (green, red, or grey) from the same TCP checks used for bookmarks. Tap **+** to copy an entry into your bookmarks. It browses generic web servers (`_http._tcp`, `_https._tcp`), Home Assistant, Plex, network printers (IPP/IPPS admin pages), OctoPrint, ESPHome, and WLED.
-- **Bookmark status dots** show whether each bookmark’s host and port accept a TCP connection. Green means the connection succeeded within 3 seconds. Red means it was refused, timed out, or the name did not resolve. Grey means a check is running. With the feature off, no dots are shown. Checks run when the bookmark list appears, on pull-to-refresh, and when the network changes. There is no background polling. Checks contact only the addresses you saved, except the Wi-Fi Sign-In bookmark, which is never checked.
-- **Device names** replace the raw URL on bookmark and On This Network rows. A row shows the friendly name, then its port and path, then the most recently seen IP with the same port, such as “studio:8888 · 10.0.2.2:8888”. The default name is the host name without local suffixes (`.local`, `.localdomain`, `.lan`, `.home.arpa`, `.home`, `.internal`), so an HTTP service at `studio.local` shows as “studio:80”. A bookmark saved by IP takes its name from a reverse DNS lookup when one answers, otherwise from the IP. Rename a device in the **Device** section at the top of Page Info (ⓘ), or long-press a bookmark or On This Network row and choose **Rename Device…**. Leaving the name empty restores the default. One name applies to every bookmark on that host. A name is tied to the host name, so it follows the device when its IP changes. Bookmarks saved by IP are keyed by that IP instead. iOS does not let apps read MAC addresses, so names cannot be tied to hardware. IPs and reverse-lookup names are learned only while **Local Network Features** is on, from discovery, the port scan, bookmark status checks, and when Page Info opens. With the feature off, rows show only the name, port, and path.
-- **Tap +** on an On This Network row saves the device’s Bonjour host name URL, such as `http://studio.local:8888/`, rather than its IP, so the bookmark keeps working when the router assigns a new IP. If the host name cannot be resolved, the IP is used instead.
-- **Port Scan** finds web apps that don’t advertise with Bonjour. Its choices are **Common Web Apps** (22 ports: 80 81 443 1880 3000 3001 5000 5001 7878 8000 8008 8080 8081 8096 8123 8443 8888 8989 9000 9090 9443 32400), **Custom** (the ports in **Settings › Local Network › Custom Scan Ports**, which starts with the same 22 ports), **Standard Web** (ports 80 and 443), and **Bonjour Only**. Choosing **Bonjour Only** runs a Bonjour-only scan with no port scan. Until you have opened **Settings › Local Network › Custom Scan Ports** once, the Custom choice reads **Set Up Custom Scan…**; choosing it opens that page without scanning, and from the first-scan sheet it answers the question without scanning. After that, **Custom (N ports)** runs the scan immediately. The range is this device’s whole IPv4 network when it has at most 1,024 addresses, and otherwise only the 254 addresses around the device. The port scan runs only as part of a scan you choose, in **Scan This Network?** or from the circular arrow or a pull down on the bookmark list. It never runs on its own. A scan tries every port in the selected preset on every address in the confirmed range, even when ports 80 and 443 do not respond. The connection count is the address count multiplied by the number of selected ports (for example, 1,021 addresses × 22 ports = 22,462 connections). Progress shows “Checking ports…” and then “Reading pages…”, with a **Cancel** button that keeps the previous results. Large scans can take several minutes.
-- **Port scan results** merge into On This Network. Rows found only by the port scan carry a small “port scan” tag. Tapping **+** on one saves its IP address URL, such as `https://10.0.0.1/`, because the port scan has no Bonjour host name to save. HTTPS pages are read even with self-signed certificates, and page reading follows redirects (up to 5). Opening one shows an untrusted certificate with a red “!” (see [Errors are shown in full](#errors-are-shown-in-full)). A row is titled with the title of the page the redirects end on, otherwise the device’s network name from a reverse DNS lookup (for example, “nest-audio:8008”), otherwise the server software, otherwise “Web app on port N”. If Bonjour found the same address and port, the Bonjour row is shown instead. Redirect-only answers to another found page, “400 Bad Request” answers, and HTTP copies of an identical HTTPS page are left out. Bookmarked host-or-IP and port stay hidden. The section’s scan line shows what the last scan covered, such as “Scanned 5 minutes ago · 5:23 PM · Bonjour + 22 ports”, or “Bonjour + custom ports” for a Custom scan. Choosing the scan again uses the current network’s range.
+If Local Network access is still undecided, the row says “Waiting for permission…” and the scan starts after you allow it. If access stays off, the row explains where to turn it on.
 
-Discovery and the port scan run only from a scan you choose, in **Scan This Network?** or from the circular arrow or a pull down. Status checks run only while the bookmark list is open and the app is in the foreground. Discovery uses local multicast only, and the port scan connects only to addresses on your own network. Both stay on your network. Nothing from discovery, the port scan, status checks, or diagnostics is sent to the developer or any third party.
+**On This Network**, below your bookmarks, lists web apps found by Bonjour or by the port scan. A bookmarked host is hidden only on the port you saved, so another service on that device still appears. **+** saves the entry: a Bonjour row keeps the host name, and a port-scan row keeps the IP address. The last scan stays on the device until you scan again or choose **Clear Discovered Services**. The app does not rescan on its own when you join another network. Swipe a row to hide it until the next scan.
 
-## Errors are shown in full
+Status dots show whether a bookmark’s host and port accept a connection. They appear only while the list is open and the feature is on. **Wi-Fi Sign-In** is never checked.
 
-- **Any main-page response other than 200** makes the response the first line of the page: a strip above the page content (never covering it) with the status (for example `HTTP 404 Not Found`) and the exact method and URL, so a blank error page is never silent. If the error response can’t be displayed as a page (for example a 404 sent as `application/octet-stream`), it is never saved as a download; the error screen is headed with the status and lists the request, Content-Type, Content-Length and Server, with **Response Details**. **Details** lists the status and every response header as received, with **Copy Response Details**; **Diagnose** opens the connection checks. Page Info also has a **Response** section. The status code is exactly what the server sent; WebKit doesn’t pass on the server’s own reason phrase (HTTP/2 has none), so the phrase is the standard one for that code. iOS may normalize header names and doesn’t keep their order, so headers are sorted by name.
-- **A page that fails to load** shows the system’s message plus the exact error domain and code, any underlying error, and the failing URL (for example `NSURLErrorDomain -1004`, `kCFErrorDomainCFNetwork -1004`, `http://127.0.0.1:8899/`). The text can be selected and copied.
-- **Ports browsers refuse to load** (the Fetch standard’s blocked ports, such as 22, 25, 548 and 554) are explained instead of leaving a blank page; WebKit drops these without reporting an error.
-- **Untrusted certificates on local addresses** open anyway. When an HTTPS page on a local-network address (private IPv4 such as 10.x, 172.16–31.x or 192.168.x, link-local, `.local` names, single-word host names, or localhost) has a certificate iOS can’t verify (self-signed, expired, or wrong name), the first line of the page is a strip with a red “!” reading “Certificate not trusted” and the host. Tap it to see the system’s exact trust error and error code, and for each certificate in the chain its subject, common name, valid from and until, key type and size, serial number and SHA-256 fingerprint. **Copy Certificate Details** copies them. Page Info’s Connection section says “Encrypted (HTTPS), but the certificate isn’t trusted” and has **Show Certificate**. **Internet sites with invalid certificates are still rejected** with the system’s normal error.
+Rename a device from Page Info or **Rename Device…**. One name covers every bookmark on that host.
 
-## Connection diagnostics
+Scans and status checks stay on your network. Diagnostics contact only the address you ask about. None of that is sent to the developer.
 
-**Why can’t I connect?** checks each step in order, and each failure shows plain-language advice. The steps are **Network** (Wi-Fi, cellular, or none, and the device IP), **Local Network Access** (for local addresses only), **Name Lookup** (what the name resolves to through iOS’s DNS resolver), **Port** (TCP connect, refused or timed out), and **Web Server** (a single GET over a raw connection: status code, server header, and for HTTPS whether the certificate is trusted). Web Server follows redirects (up to 5, relative or absolute `Location`, with the query kept; 304 isn’t a redirect) and lists every hop, such as “HTTP 301 Moved Permanently → https://10.0.0.1/”, then the final response. It warns if the chain stopped after 5 redirects, which usually means a loop. Its advice for an untrusted certificate says that local addresses open anyway and suggests comparing the fingerprint with the device. Later steps are skipped after a failure.
+## When a page fails
 
-Open it from the Page Info (ⓘ) sheet, the **Diagnose** button next to **Retry** on the “Page unavailable” screen, or **Check Connection** in a bookmark’s long-press menu. It runs only when you ask. It does not need the Local Network Features switch, although checking a local address may trigger the iOS permission prompt. **Copy Report** copies a text summary for support requests.
+- Any main-page response other than 200 is shown, as a strip above the page or as an error screen. Those responses are not saved as downloads. The status code is the one the server sent. The reason phrase is the standard phrase for that code.
+- A failed load shows the system message, the error domain and code, and the URL.
+- Ports that browsers refuse to open, such as 22 or 25, are explained instead of leaving a blank page.
+- An HTTPS page on a local address with an untrusted certificate still opens, with a red “!” you can tap for the certificate details. Internet sites with invalid certificates are rejected.
+
+**Why can’t I connect?** checks the network, Local Network access, name lookup, the port, and the web server, including redirects. Open it from Page Info, **Diagnose** on the error screen, or **Check Connection** on a bookmark. **Copy Report** copies a summary. Remove private addresses before posting it.
 
 ## Settings
 
-Open **Settings** (the gear button on the bookmark screen). It has six groups: **Browsing** (**Open Bookmarks In** and **Restore Tabs on Launch**); **Local Network** (the **Local Network Features** switch, **Custom Scan Ports** (the ports for a Custom scan; editing them never starts a scan), **Clear Discovered Services**, and **Reset Device Names**, which asks for confirmation and forgets custom names, remembered IPs, and looked-up host names but keeps bookmarks); **Passwords** (**Offer to Save Passwords**, **AutoFill Saved Passwords**, and **Saved Passwords**); **Public Wi-Fi** (**Add Wi-Fi Sign-In Bookmark**, disabled once the bookmark is in your list); **Privacy** (**Clear Cookies & Website Data** and the bundled offline **Privacy Policy**); and **Help & Support** (the **Using LAN Browser** help page, **Run Browser Check**, **Ask for Help or Report a Problem** on GitHub Issues, and the app version). The browser check renders locally and offers a sample Save to Files download without a LAN server or internet connection.
+**Settings** on the bookmark screen has six groups: **Browsing**, **Local Network**, **Passwords**, **Public Wi-Fi**, **Privacy**, and **Help & Support**. Privacy includes **Clear Cookies & Website Data** and the offline privacy policy. Help includes **Using LAN Browser**, an offline **Run Browser Check** with a sample download, and **Ask for Help or Report a Problem**.
+
+## Privacy
+
+The app has no analytics, ads, accounts, or backend. Bookmarks, device names, scan results, open tabs, and saved passwords stay on the device. Websites you open have their own practices, and HTTP is not encrypted. The [privacy policy](LANBrowser/privacy_policy.md) is also shown in the app under **Settings › Privacy Policy**.
 
 ## Building from source
 
 Requirements: Xcode with the iOS 26 SDK or later. There are no dependencies to install.
 
-1. Open `LANBrowser.xcodeproj` in Xcode and select the **LANBrowser** scheme.
-2. Select the **LANBrowser** target, open **Signing & Capabilities**, and choose your own **Team**.
-3. Change the bundle identifier, which is set to **com.jesse.lanbrowser**, to one you control, such as **com.yourname.lanbrowser**.
-4. Choose an iPhone or iPad simulator, a connected iPhone or iPad, or **My Mac (Designed for iPad)** as the run destination, and press **⌘R**. Installing directly on an iPhone or iPad requires Developer Mode (**Settings › Privacy & Security › Developer Mode**).
+1. Open `LANBrowser.xcodeproj` and select the **LANBrowser** scheme.
+2. In **Signing & Capabilities**, choose your own **Team**.
+3. Change the bundle identifier from **com.jesse.lanbrowser** to one you control.
+4. Choose an iPhone or iPad simulator, a connected iPhone or iPad, or **My Mac (Designed for iPad)**, and press **⌘R**. Installing directly on an iPhone or iPad requires Developer Mode (**Settings › Privacy & Security › Developer Mode**).
 
 To build for the simulator without a signing team:
 
@@ -162,61 +157,45 @@ xcodebuild -project LANBrowser.xcodeproj -scheme LANBrowser \
   CODE_SIGNING_ALLOWED=NO build
 ```
 
-Unsigned builds can’t be installed on an iPhone, iPad or Mac, or uploaded to TestFlight. Those need a signing team.
+An unsigned build cannot be installed on a device or uploaded to TestFlight.
 
 ## Troubleshooting
 
+More help is in [SUPPORT.md](SUPPORT.md).
+
 ### If a home service does not load
 
-- Open **Why can’t I connect?** from the Page Info (ⓘ) sheet, the **Diagnose** button next to **Retry** on the “Page unavailable” screen, or **Check Connection** in a bookmark’s long-press menu. It reports which step fails.
-- If it reports Local Network permission denied, open **Settings › Privacy & Security › Local Network › LAN Browser** and turn it on. On a Mac, open **System Settings › Privacy & Security › Local Network** and turn on LAN Browser.
-- Try the exact address in Safari on the same device. The app uses iOS’s normal DNS resolver and does not invent an IP address for a hostname. **On This Network** shows the services found by your last scan on the current network; tap the circular arrow on that row to refresh it.
-- If Safari also fails, try **http://YOUR_SERVER_LAN_IP:PORT/**. If the IP works, fix your home DNS or edit the bookmark to use the IP. A `.local` address is another option only if that machine actually advertises one.
-- Ensure the service listens on the LAN interface rather than only `127.0.0.1`, its firewall permits the port, and the device is not on an isolated guest Wi-Fi network.
-- The ATS settings allow HTTP inside the browser. They do not repair DNS or bypass server authentication. A local device with an untrusted certificate still opens, marked with a red “!” (see [Errors are shown in full](#errors-are-shown-in-full)), but internet sites with invalid certificates are rejected.
+- Open **Why can’t I connect?** and see which step fails.
+- If Local Network access is off, turn on **LAN Browser** under **Settings › Privacy & Security › Local Network** on iPhone or iPad, or **System Settings › Privacy & Security › Local Network** on a Mac.
+- Try the same address in Safari. If the name fails and the IP works, fix home DNS or edit the bookmark to use the IP.
+- Confirm the service listens on the LAN, the firewall allows the port, and the device is not on a guest network.
+- A local device with an untrusted certificate still opens, marked with a red “!”. An internet site with an invalid certificate is rejected.
 
 ### If a captive portal does not appear
 
-- Open the **Wi-Fi Sign-In** bookmark. If it isn’t in your list, add it from **Settings › Public Wi-Fi**.
-- Stay on **http://wifi.makesmart.ai/**. Opening an HTTPS site usually produces a certificate warning instead of the login page, and that warning should not be bypassed.
-- Join the Wi-Fi network again, then reload Wi-Fi Sign-In. Some portals only intercept the first plain-HTTP request after association.
+- Add **Wi-Fi Sign-In** from **Settings › Public Wi-Fi** and open it. Stay on `http://wifi.makesmart.ai/`. An HTTPS address usually produces a certificate warning instead of the login page.
+- Join the Wi-Fi network again, then reload. Some portals intercept only the first plain-HTTP request after you join.
 
 ## Testing
-
-`Scripts/check.sh` compiles the Foundation-only logic for macOS and runs its checks: address parsing, bookmarks, Bonjour service mapping, diagnostic parsing, device names, saved tabs, the discovery cache, and port-scan logic. It also lints the property lists and the Xcode project file. It does not launch WebKit, so it doesn’t replace on-device testing.
 
 ```sh
 Scripts/check.sh
 ```
 
-Manual on-device checks and the local test fixture are described in [docs/TESTING.md](docs/TESTING.md).
-
-## Privacy and implementation notes
-
-The app has no analytics, advertising, cloud backend, or app-account system. Browsed websites make their own normal network requests. The Wi-Fi Sign-In bookmark is contacted only when you open it; the app never fetches its icon or checks its status. Bookmarks live in Application Support, alongside `devices.json` (custom device names, last-seen IPs, and reverse-lookup names), `discovered.json` (the last On This Network scan), and `tabs.json` (open tabs, while Restore Tabs on Launch is on). None of it is sent to the developer or anyone else. Website data is managed by WebKit. Download staging files live in the temporary directory and are removed after saving/cancellation or the next launch after an interrupted session.
-
-`NSAllowsLocalNetworking` supports local hostnames/IPs. `NSAllowsArbitraryLoadsInWebContent` permits HTTP navigation and resources within WebKit, including redirects to other hostnames, without globally disabling ATS for unrelated app networking. Apple documents [local networking](https://developer.apple.com/documentation/bundleresources/information-property-list/nsapptransportsecurity/nsallowslocalnetworking), [web-content HTTP exceptions](https://developer.apple.com/documentation/bundleresources/information-property-list/nsapptransportsecurity/nsallowsarbitraryloadsinwebcontent), and the [WebKit exception to local-network permission](https://developer.apple.com/documentation/technotes/tn3179-understanding-local-network-privacy). Local network discovery and the port scan are opt-in. With **Local Network Features** on, the app browses Bonjour services when you scan and makes TCP connections to saved bookmarks and discovered devices. The port scan connects only to addresses on your own network, and only from a scan you choose. Connection diagnostics make DNS, TCP, and HTTP requests to the address you check, only when you run them. Without the switch, the app does not browse the network. WebKit page loads are exempt from the iOS Local Network prompt; the native features above trigger it. Invalid HTTPS certificates are accepted only for local-network addresses, in the server-trust challenge of `BrowserTab`; each such override is recorded and shown with the red “!”. Internet sites keep normal certificate validation.
-
-The encryption declaration reflects use of Apple’s built-in HTTPS support with no custom encryption. Revisit it if custom cryptography is added. The privacy manifest declares no tracking and no app-collected data. Its only required-reason API is UserDefaults (reason `CA92.1`), which stores the Local Network Features switch, whether its card was dismissed, the Settings choices (Open Bookmarks In and Restore Tabs on Launch) the confirmed port-scan choice, the Custom scan port list (`customScanPorts`, text such as `80-81,443,8000-8100`), whether you have opened Custom Scan Ports (`customScanPortsVisited`), and whether the first-use notice was accepted (`trustedNetworkNoticeAccepted`).
-
-Foreground downloads only: keep the app open while downloading. Resuming downloads after termination, background transfers, and bookmark sync are outside this version.
+That compiles the Foundation-only logic and lints the property lists and the Xcode project. It does not launch WebKit. Manual checks are in [docs/TESTING.md](docs/TESTING.md).
 
 ## Security
 
-Report vulnerabilities privately, as described in [SECURITY.md](SECURITY.md), rather than in a public issue. CodeQL, OpenSSF Scorecard and zizmor check the code and the GitHub Actions workflows, Dependabot keeps the pinned actions current, and every action is pinned to a full commit SHA.
+Report vulnerabilities privately, as described in [SECURITY.md](SECURITY.md).
 
 ## Support
 
-For help, see [SUPPORT.md](SUPPORT.md). The [privacy policy](LANBrowser/privacy_policy.md) is also bundled with the app and shown offline in **Settings**.
+For help, see [SUPPORT.md](SUPPORT.md).
 
 ## Contributing
 
-Issues and pull requests are welcome; see [AGENTS.md](AGENTS.md) for project layout and conventions. Pull requests use a checklist (`.github/pull_request_template.md`) covering `Scripts/check.sh`, the simulator build, and the privacy and networking rules. CI must pass.
+Issues and pull requests are welcome. Project layout and conventions are in [AGENTS.md](AGENTS.md).
 
 ## License
 
 LAN Browser is released under the [MIT License](LICENSE).
-
-## Saved passwords
-
-Offer to Save Passwords is on by default in Settings (the gear). Each supported login-form submission offers Save or Not Now, including on HTTP pages and for previously saved credentials. Saving stores the username and password in this device’s Keychain, separated by scheme, host, port and username; saving again updates that entry. Passwords are available only while the device is unlocked and aren’t synced to iCloud or migrated to another device. Settings > Saved Passwords lets you reveal, copy and delete them. AutoFill Saved Passwords is also on by default and can be turned off separately in Settings. It fills supported main-page login forms for the exact saved scheme, host and port, including HTTP pages, without submitting the form. An entered username selects its matching account; an empty form uses the most recently saved account. Existing password text is preserved. Filled credentials are available to that website’s scripts before you submit.  Turning offers off and clearing website data keep saved passwords. Keychain entries may survive app deletion, so delete saved passwords before uninstalling. Embedded sign-in frames, HTTP authentication dialogs and some custom forms aren’t supported. Saving a password does not encrypt HTTP traffic.
